@@ -2,10 +2,7 @@ package com.baekho.bridgenet.global.common.annotation;
 
 import com.baekho.bridgenet.global.common.validator.EthAddressValidator;
 import jakarta.validation.Constraint;
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
-import org.web3j.crypto.WalletUtils;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

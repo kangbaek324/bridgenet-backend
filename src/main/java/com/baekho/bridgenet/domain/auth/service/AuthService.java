@@ -21,6 +21,7 @@ public class AuthService {
     public NonceResponseDTO getNonce(NonceRequestDTO dto) {
         Random random = new Random();
         String nonceValue;
+        String address = dto.getAddress().toLowerCase();
 
         // 중복 검사
         while(true) {
@@ -31,12 +32,12 @@ public class AuthService {
             if (!nonceRepository.existsByNonce(nonceValue)) break;
         }
 
-        Nonces existing = nonceRepository.findByAddress(dto.getAddress());
+        Nonces existing = nonceRepository.findByAddress(address);
 
         // 있으면 업데이트 없으면 생성
         if (existing == null) {
             Nonces nonce = Nonces.builder()
-                    .address(dto.getAddress())
+                    .address(address)
                     .nonce(nonceValue)
                     .expiryDate(LocalDateTime.now().plusMinutes(5))
                     .build();
