@@ -32,6 +32,6 @@ public class Users {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @Column(nullable = false, name = "deleted_at")
-    private LocalDateTime deleted_at;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

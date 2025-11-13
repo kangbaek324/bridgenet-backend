@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ErrorResponse<String>> authException(AuthException ex) {
         return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
-                .body(new ErrorResponse<>(ex.getMessage()));
+                .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
     }
 
     // 404
