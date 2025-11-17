@@ -1,11 +1,9 @@
 package com.baekho.bridgenet.domain.auth.controller;
 
-import com.baekho.bridgenet.domain.auth.dto.NonceRequestDTO;
-import com.baekho.bridgenet.domain.auth.dto.NonceResponseDTO;
-import com.baekho.bridgenet.domain.auth.dto.RegisterRequestDTO;
-import com.baekho.bridgenet.domain.auth.dto.RegisterResponseDTO;
+import com.baekho.bridgenet.domain.auth.dto.*;
 import com.baekho.bridgenet.domain.auth.service.AuthService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +32,16 @@ public class AuthController {
             @Valid @RequestBody RegisterRequestDTO dto
     ) {
         RegisterResponseDTO result = authService.register(dto);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
+    @PostMapping("login")
+    public ResponseEntity<SuccessResponse<LoginResponseDTO>> login(
+            @Valid @RequestBody LoginRequestDTO dto,
+            HttpServletResponse response
+    ) {
+        LoginResponseDTO result = authService.login(dto, response);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }

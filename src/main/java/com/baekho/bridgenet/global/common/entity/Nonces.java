@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.auth.entity;
+package com.baekho.bridgenet.global.common.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,14 +15,14 @@ import java.time.LocalDateTime;
 public class Nonces {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
-    String address;
+    private String address;
 
     @Column(nullable = false, unique = true)
-    String nonce;
+    private String nonce;
 
     @Column(nullable = false, name = "expiry_date")
-    LocalDateTime expiryDate;
+    private LocalDateTime expiryDate;
 }

@@ -1,6 +1,6 @@
-package com.baekho.bridgenet.domain.auth.entity;
+package com.baekho.bridgenet.global.common.entity;
 
-import com.baekho.bridgenet.domain.auth.enums.Role;
+import com.baekho.bridgenet.global.common.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

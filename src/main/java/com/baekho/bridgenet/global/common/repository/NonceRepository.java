@@ -1,6 +1,6 @@
-package com.baekho.bridgenet.domain.auth.repository;
+package com.baekho.bridgenet.global.common.repository;
 
-import com.baekho.bridgenet.domain.auth.entity.Nonces;
+import com.baekho.bridgenet.global.common.entity.Nonces;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

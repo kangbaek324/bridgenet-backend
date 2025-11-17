@@ -8,8 +8,9 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum AuthErrorCode implements ErrorCode {
-    USER_NAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 username 입니다."),
+    USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 username 입니다."),
     ADDRESS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 유저입니다."),
+    UNKNOWN_USERNAME(HttpStatus.UNAUTHORIZED, "존재 하지 않는 유저입니다."),
 
     NONCE_EXPIRED_DATE(HttpStatus.UNAUTHORIZED, "만료된 논스값입니다."),
 
