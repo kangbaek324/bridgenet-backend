@@ -155,7 +155,7 @@ public class AuthService {
 
         RefreshTokens refreshTokenDB = RefreshTokens.builder()
                 .refreshToken(refreshToken)
-                .expiryDate(LocalDateTime.now())
+                .expiryDate(LocalDateTime.now().plusDays(30))
                 .build();
 
         refreshTokenRepository.save(refreshTokenDB);
@@ -170,6 +170,23 @@ public class AuthService {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return new LoginResponseDTO(accessToken);
+    }
+
+    public RefreshAccessTokenResponseDTO refreshAccessToken(String refreshTokenId) {
+        if (refreshTokenId == null) throw new AuthException(AuthErrorCode.REFRESH_TOKEN_ID_IS_NULL);
+        RefreshTokens refreshTokens = refreshTokenRepository.findById(Long.parseLong(refreshTokenId))
+                .orElseThrow(() -> new  AuthException(AuthErrorCode.REFRESH_TOKEN_NOTFOUND));
+
+        if (refreshTokens.getExpiryDate().isBefore(LocalDateTime.now())) {
+            refreshTokenRepository.delete(refreshTokens);
+
+            throw new AuthException(AuthErrorCode.REFERSH_TOKEN_EXPIRED);
+        }
+
+        String userId = tokenProvider.getUserId(refreshTokens.getRefreshToken());
+        String accessToken = tokenProvider.createToken(Long.parseLong(userId));
+
+        return new RefreshAccessTokenResponseDTO(accessToken);
     }
 
 }

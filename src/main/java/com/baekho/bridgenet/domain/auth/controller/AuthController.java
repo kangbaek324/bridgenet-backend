@@ -7,10 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
@@ -42,6 +39,15 @@ public class AuthController {
             HttpServletResponse response
     ) {
         LoginResponseDTO result = authService.login(dto, response);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
+    @PostMapping("refresh")
+    public ResponseEntity<SuccessResponse<RefreshAccessTokenResponseDTO>> refreshAccessToken(
+            @CookieValue(name = "refreshTokenId", required = false) String refreshTokenId
+    ) {
+        RefreshAccessTokenResponseDTO result = authService.refreshAccessToken(refreshTokenId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
