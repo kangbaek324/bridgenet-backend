@@ -11,6 +11,7 @@ import com.baekho.bridgenet.domain.auth.repository.AuthRepository;
 import com.baekho.bridgenet.domain.auth.repository.NonceRepository;
 import com.baekho.bridgenet.global.common.code.AuthErrorCode;
 import com.baekho.bridgenet.global.common.exception.AuthException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Keys;
@@ -22,6 +23,7 @@ import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Random;
+import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 
 @Service
 @RequiredArgsConstructor
@@ -65,13 +67,14 @@ public class AuthService {
         return new NonceResponseDTO(nonceValue);
     }
 
+    @Transactional
     public RegisterResponseDTO register(RegisterRequestDTO dto) {
         Nonces nonce = nonceRepository.findByAddress(dto.getAddress());
         if (nonce.getExpiryDate().isBefore(LocalDateTime.now())) {
             nonceRepository.delete(nonce);
             throw new AuthException(AuthErrorCode.NONCE_EXPIRED_DATE);
         }
-        String message = "Welcome to Bridgenet !\n\nLogin With " + nonce.getNonce();
+        String message = "Welcome to Bridgenet !\n\nRegister With " + nonce.getNonce();
 
         // prefix 붙이고 붙인 바이트값을 해쉬화 해서 줌
         byte[] messageHash = Sign.getEthereumMessageHash(message.getBytes(StandardCharsets.UTF_8));
