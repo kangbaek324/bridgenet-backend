@@ -1,7 +1,7 @@
 package com.baekho.bridgenet.global.auth;
 
-import com.baekho.bridgenet.global.common.entity.Users;
-import com.baekho.bridgenet.global.common.repository.UserRepository;
+import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

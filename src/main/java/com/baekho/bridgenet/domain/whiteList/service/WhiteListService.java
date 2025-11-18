@@ -3,7 +3,7 @@ package com.baekho.bridgenet.domain.whiteList.service;
 import com.baekho.bridgenet.domain.whiteList.dto.WhiteListRequestDTO;
 import com.baekho.bridgenet.domain.whiteList.dto.WhiteListResponseDTO;
 import com.baekho.bridgenet.global.common.code.WhiteListErrorCode;
-import com.baekho.bridgenet.global.common.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.global.common.exception.WhiteListException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

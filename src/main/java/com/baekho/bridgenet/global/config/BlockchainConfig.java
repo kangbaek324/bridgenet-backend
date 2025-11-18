@@ -1,6 +1,7 @@
 package com.baekho.bridgenet.global.config;
 
 import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,7 @@ import org.web3j.tx.gas.StaticEIP1559GasProvider;
 import java.math.BigInteger;
 
 @Configuration
+@RequiredArgsConstructor
 public class BlockchainConfig {
 
     @Value("${ethereum.sepolia.http.url}")

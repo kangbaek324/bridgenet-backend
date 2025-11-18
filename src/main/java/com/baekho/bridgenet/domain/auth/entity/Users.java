@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.global.common.entity;
+package com.baekho.bridgenet.domain.auth.entity;
 
 import com.baekho.bridgenet.global.common.enums.Role;
 import jakarta.persistence.*;
