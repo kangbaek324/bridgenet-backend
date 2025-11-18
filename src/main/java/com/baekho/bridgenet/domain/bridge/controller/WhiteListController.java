@@ -1,8 +1,8 @@
-package com.baekho.bridgenet.domain.whiteList.controller;
+package com.baekho.bridgenet.domain.bridge.controller;
 
-import com.baekho.bridgenet.domain.whiteList.dto.WhiteListRequestDTO;
-import com.baekho.bridgenet.domain.whiteList.dto.WhiteListResponseDTO;
-import com.baekho.bridgenet.domain.whiteList.service.WhiteListService;
+import com.baekho.bridgenet.domain.bridge.dto.WhiteListRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.WhiteListResponseDTO;
+import com.baekho.bridgenet.domain.bridge.service.WhiteListService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("api/whitelist")
+@RequestMapping("api/bridge/whitelist")
 public class WhiteListController {
     private final WhiteListService whiteListService;
 

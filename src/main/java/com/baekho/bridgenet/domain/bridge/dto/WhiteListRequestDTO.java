@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.whiteList.dto;
+package com.baekho.bridgenet.domain.bridge.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

@@ -14,6 +14,7 @@ import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.security.SignatureException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -43,32 +45,31 @@ public class AuthService {
         String address = dto.getAddress().toLowerCase();
 
         // 중복 검사
-        while(true) {
+        do {
             nonceValue =
                     Integer.toString(random.nextInt(10000000)) +
                     Integer.toString(random.nextInt(10000000));
 
-            if (!nonceRepository.existsByNonce(nonceValue)) break;
-        }
+        } while (nonceRepository.existsByNonce(nonceValue));
 
-        Nonces existing = nonceRepository.findByAddress(address);
+        Optional<Nonces> existing = nonceRepository.findByAddress(address);
+        Nonces nonceDB;
 
-        // 있으면 업데이트 없으면 생성
-        if (existing == null) {
-            Nonces nonce = Nonces.builder()
-                    .address(address)
+        if (existing.isEmpty()) {
+            nonceDB = Nonces.builder()
+                    .address(dto.getAddress())
                     .nonce(nonceValue)
                     .expiryDate(LocalDateTime.now().plusMinutes(5))
                     .build();
-
-            nonceRepository.save(nonce);
         }
         else {
-            existing.setNonce(nonceValue);
-            existing.setExpiryDate(LocalDateTime.now().plusMinutes(5));
+            nonceDB = existing.get();
 
-            nonceRepository.save(existing);
+            nonceDB.setNonce(nonceValue);
+            nonceDB.setExpiryDate(LocalDateTime.now().plusMinutes(5));
         }
+
+        nonceRepository.save(nonceDB);
 
         return new NonceResponseDTO(nonceValue);
     }
@@ -108,11 +109,14 @@ public class AuthService {
 
     @Transactional
     public RegisterResponseDTO register(RegisterRequestDTO dto) {
-        Nonces nonce = nonceRepository.findByAddress(dto.getAddress());
+        Nonces nonce = nonceRepository.findByAddress(dto.getAddress())
+                .orElseThrow(() -> new AuthException(AuthErrorCode.NONCE_NOT_FOUND));
+
         if (nonce.getExpiryDate().isBefore(LocalDateTime.now())) {
             nonceRepository.delete(nonce);
             throw new AuthException(AuthErrorCode.NONCE_EXPIRED_DATE);
         }
+
         String message = "Welcome to Bridgenet !\n\nRegister With " + nonce.getNonce();
         String recoveredAddress = signedMessageToAddress(dto.getSignatureData(), message);
 
@@ -129,6 +133,9 @@ public class AuthService {
                     .build();
 
             userRepository.save(user);
+
+            // 사용한 논스값 삭제
+            nonceRepository.delete(nonce);
             
             return new RegisterResponseDTO(dto.getUsername(), dto.getAddress());
         }
@@ -137,11 +144,14 @@ public class AuthService {
         }
     }
 
+    @Transactional
     public LoginResponseDTO login(LoginRequestDTO dto, HttpServletResponse response) {
         Users user = userRepository.findByUsername(dto.getUsername())
                 .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USERNAME));
 
-        Nonces nonce = nonceRepository.findByAddress(user.getAddress());
+        Nonces nonce = nonceRepository.findByAddress(user.getAddress())
+                .orElseThrow(() -> new AuthException(AuthErrorCode.NONCE_NOT_FOUND));
+
         if (nonce.getExpiryDate().isBefore(LocalDateTime.now())) {
             nonceRepository.delete(nonce);
             throw new AuthException(AuthErrorCode.NONCE_EXPIRED_DATE);
@@ -149,6 +159,10 @@ public class AuthService {
 
         String message = "Welcome to Bridgenet !\n\nLogin With " + nonce.getNonce();
         String recoveredAddress = signedMessageToAddress(dto.getSignatureData(), message);
+
+        if (!user.getAddress().equals(recoveredAddress)) {
+            throw new AuthException(AuthErrorCode.INCORRECT_USERINFO);
+        }
 
         String accessToken = tokenProvider.createToken(user.getId());
         String refreshToken = tokenProvider.createRefreshToken(user.getId());
@@ -169,18 +183,21 @@ public class AuthService {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
+        // 사용한 논스 삭제
+        nonceRepository.delete(nonce);
+
         return new LoginResponseDTO(accessToken);
     }
 
     public RefreshAccessTokenResponseDTO refreshAccessToken(String refreshTokenId) {
         if (refreshTokenId == null) throw new AuthException(AuthErrorCode.REFRESH_TOKEN_ID_IS_NULL);
         RefreshTokens refreshTokens = refreshTokenRepository.findById(Long.parseLong(refreshTokenId))
-                .orElseThrow(() -> new  AuthException(AuthErrorCode.REFRESH_TOKEN_NOTFOUND));
+                .orElseThrow(() -> new  AuthException(AuthErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         if (refreshTokens.getExpiryDate().isBefore(LocalDateTime.now())) {
             refreshTokenRepository.delete(refreshTokens);
 
-            throw new AuthException(AuthErrorCode.REFERSH_TOKEN_EXPIRED);
+            throw new AuthException(AuthErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
         String userId = tokenProvider.getUserId(refreshTokens.getRefreshToken());
@@ -189,4 +206,7 @@ public class AuthService {
         return new RefreshAccessTokenResponseDTO(accessToken);
     }
 
+    public boolean isAdmin(@NotNull Users user) {
+        return user.getRole() == Role.ADMIN;
+    }
 }

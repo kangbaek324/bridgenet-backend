@@ -1,18 +1,19 @@
 package com.baekho.bridgenet.global.common;
 
 import com.baekho.bridgenet.global.common.exception.AuthException;
+import com.baekho.bridgenet.global.common.exception.BridgeException;
 import com.baekho.bridgenet.global.common.exception.WhiteListException;
 import com.baekho.bridgenet.global.common.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import com.baekho.springClass.dto.ValidationErrorDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse<>("서버에 오류가 발생했습니다."));
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse<String>> accessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse<>("접근 권한이 없습니다"));
+    }
+
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ErrorResponse<String>> authException(AuthException ex) {
         return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
@@ -60,6 +67,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(WhiteListException.class)
     public ResponseEntity<ErrorResponse<String>> whiteListException(WhiteListException ex) {
+        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
+    }
+
+    @ExceptionHandler(BridgeException.class)
+    public ResponseEntity<ErrorResponse<String>> whiteListException(BridgeException ex) {
         return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
                 .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
     }
