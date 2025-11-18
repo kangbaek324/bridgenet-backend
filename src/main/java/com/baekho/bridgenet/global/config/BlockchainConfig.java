@@ -7,12 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
+import org.web3j.tx.gas.StaticEIP1559GasProvider;
 
-import java.net.ConnectException;
+import java.math.BigInteger;
 
 @Configuration
 public class BlockchainConfig {
@@ -97,7 +97,12 @@ public class BlockchainConfig {
                 amowyContractAddress,
                 amoyWeb3jHttp,
                 txManager,
-                new DefaultGasProvider()
+                new StaticEIP1559GasProvider(
+                    80002L,
+                        BigInteger.valueOf(50_000_000_000L),
+                        BigInteger.valueOf(25_000_000_000L),
+                        BigInteger.valueOf(150000)
+                )
         );
     }
 }

@@ -7,8 +7,9 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum BlockchainErrorCode implements ErrorCode {
-    ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "요청에 실패했습니다.");
+public enum WhiteListErrorCode implements ErrorCode {
+    UNKNOWN_CHAIN_ID(HttpStatus.BAD_REQUEST, "지원하지 않는 체인입니다.");
+
     private final HttpStatus httpStatus;
     private final String message;
 }

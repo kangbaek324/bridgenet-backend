@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class NonceResponseDTO {
-    private String nonce;
+public class RefreshAccessTokenResponseDTO {
+    private String accessToken;
 }

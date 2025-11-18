@@ -1,6 +1,7 @@
 package com.baekho.bridgenet.global.common;
 
 import com.baekho.bridgenet.global.common.exception.AuthException;
+import com.baekho.bridgenet.global.common.exception.WhiteListException;
 import com.baekho.bridgenet.global.common.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -53,6 +54,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ErrorResponse<String>> authException(AuthException ex) {
+        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
+    }
+
+    @ExceptionHandler(WhiteListException.class)
+    public ResponseEntity<ErrorResponse<String>> whiteListException(WhiteListException ex) {
         return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
                 .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
     }
