@@ -128,7 +128,6 @@ public class AuthService {
                     .address(dto.getAddress())
                     .username(dto.getUsername())
                     .role(Role.USER)
-                    .createdAt(LocalDateTime.now())
                     .deletedAt(null)
                     .build();
 

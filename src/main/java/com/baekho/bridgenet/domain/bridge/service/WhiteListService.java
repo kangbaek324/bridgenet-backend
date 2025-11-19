@@ -22,13 +22,13 @@ public class WhiteListService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Users user = (Users) authentication.getPrincipal();
 
-        Long networkId = dto.getNetworkId();
+        Long chainId = dto.getChainId();
         TransactionReceipt receipt;
 
-        if (networkId == 11155111) {
+        if (chainId == 11155111) {
             receipt = sepoliaBridge.setWhiteList(user.getAddress(), true).send();
         }
-        else if (networkId == 80002) {
+        else if (chainId == 80002) {
             receipt = amoyBridge.setWhiteList(user.getAddress(), true).send();
         }
         else {

@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 public class WhiteListRequestDTO {
     @NotNull
-    private Long networkId;
+    private Long chainId;
 }

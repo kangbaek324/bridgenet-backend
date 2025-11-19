@@ -2,6 +2,7 @@ package com.baekho.bridgenet.global.common;
 
 import com.baekho.bridgenet.global.common.exception.AuthException;
 import com.baekho.bridgenet.global.common.exception.BridgeException;
+import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.common.exception.WhiteListException;
 import com.baekho.bridgenet.global.common.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -47,39 +49,52 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse<String>> handleException(Exception ex) {
-        log.error("서버 에러 발생: {}", ex.getMessage(), ex);
+    public ResponseEntity<ErrorResponse<String>> handleException(Exception e) {
+        log.error("서버 에러 발생: {}", e.getMessage(),e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse<>("서버에 오류가 발생했습니다."));
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse<String>> accessDenied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorResponse<>("접근 권한이 없습니다"));
-    }
-
     @ExceptionHandler(AuthException.class)
-    public ResponseEntity<ErrorResponse<String>> authException(AuthException ex) {
-        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
-                .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
+    public ResponseEntity<ErrorResponse<String>> authException(AuthException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
     }
 
     @ExceptionHandler(WhiteListException.class)
-    public ResponseEntity<ErrorResponse<String>> whiteListException(WhiteListException ex) {
-        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
-                .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
+    public ResponseEntity<ErrorResponse<String>> whiteListException(WhiteListException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
+    }
+
+    @ExceptionHandler(ChainException.class)
+    public ResponseEntity<ErrorResponse<String>> chinException(ChainException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
     }
 
     @ExceptionHandler(BridgeException.class)
-    public ResponseEntity<ErrorResponse<String>> whiteListException(BridgeException ex) {
-        return ResponseEntity.status(ex.getErrorCode().getHttpStatus())
-                .body(new ErrorResponse<>(ex.getErrorCode().getMessage()));
+    public ResponseEntity<ErrorResponse<String>> whiteListException(BridgeException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
+    }
+
+    // 401
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse<String>> accessDenied(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse<>("접근 권한이 없습니다"));
     }
 
     // 404
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse<String>> handleResponseResponseEntity(NoHandlerFoundException e) {
         return ResponseEntity.status(404).body(new ErrorResponse<>(e.getMessage()));
+    }
+
+    //405
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse<String>> httpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        return ResponseEntity.status(405).body(new ErrorResponse<>(e.getMessage()));
     }
 }
