@@ -1,16 +1,25 @@
 package com.baekho.bridgenet.domain.bridge.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ChainAddResponseDTO {
-    private Long id;
-    private Long chainId;
+public class ChainUpdateRequestDTO {
+    @NotBlank
     private String chainName;
+
+    @NotBlank
     private String smartContractAddress;
+
+    @NotNull
     private Long smartContractValue;
+
+    @NotBlank
     private String httpRpc;
+
+    @NotBlank
     private String wsRpc;
 }

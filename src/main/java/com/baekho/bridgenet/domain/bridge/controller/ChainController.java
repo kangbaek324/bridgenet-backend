@@ -1,8 +1,6 @@
 package com.baekho.bridgenet.domain.bridge.controller;
 
-import com.baekho.bridgenet.domain.bridge.dto.ChainAddRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.ChainAddResponseDTO;
-import com.baekho.bridgenet.domain.bridge.dto.ChainListGetResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.*;
 import com.baekho.bridgenet.domain.bridge.service.ChainService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import jakarta.validation.Valid;
@@ -30,6 +28,15 @@ public class ChainController {
             @Valid @RequestBody ChainAddRequestDTO dto
     ) {
         ChainAddResponseDTO result = chainService.addChain(dto);
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
+            @Valid @RequestBody ChainUpdateRequestDTO dto,
+            @PathVariable Long id
+    ) {
+        ChainUpdateResponseDTO result = chainService.changeChain(dto, id);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }

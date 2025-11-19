@@ -27,9 +27,7 @@ public class ChainService {
                             chain.getId(),
                             chain.getChainName(),
                             chain.getSmartContractAddress(),
-                            chain.getSmartContractValue(),
-                            chain.getCreatedAt(),
-                            chain.getUpdatedAt()
+                            chain.getSmartContractValue()
                     )
             );
         }
@@ -52,7 +50,38 @@ public class ChainService {
 
         chainsRepository.save(chain);
 
-        return new ChainAddResponseDTO(chain.getId(), chain.getChainId(), chain.getChainName());
+        return new ChainAddResponseDTO(
+                chain.getId(),
+                chain.getChainId(),
+                chain.getChainName(),
+                chain.getSmartContractAddress(),
+                chain.getSmartContractValue(),
+                chain.getHttpRpc(),
+                chain.getWsRpc()
+        );
+    }
+
+    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long id) {
+        Chains chain = chainsRepository.findById(id)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        chain.setChainName(dto.getChainName());
+        chain.setSmartContractAddress(dto.getSmartContractAddress());
+        chain.setSmartContractValue(dto.getSmartContractValue());
+        chain.setHttpRpc(dto.getHttpRpc());
+        chain.setWsRpc(dto.getWsRpc());
+
+        chainsRepository.save(chain);
+
+        return new ChainUpdateResponseDTO(
+                chain.getId(),
+                chain.getChainId(),
+                chain.getChainName(),
+                chain.getSmartContractAddress(),
+                chain.getSmartContractValue(),
+                chain.getHttpRpc(),
+                chain.getWsRpc()
+        );
     }
 
     public void removeChain(Long id) {

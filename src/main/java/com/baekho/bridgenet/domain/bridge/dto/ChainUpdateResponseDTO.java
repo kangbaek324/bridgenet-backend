@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ChainAddResponseDTO {
+public class ChainUpdateResponseDTO {
     private Long id;
     private Long chainId;
     private String chainName;

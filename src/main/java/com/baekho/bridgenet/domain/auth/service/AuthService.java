@@ -205,7 +205,7 @@ public class AuthService {
         return new RefreshAccessTokenResponseDTO(accessToken);
     }
 
-    public boolean isAdmin(@NotNull Users user) {
+    public boolean isAdmin(Users user) {
         return user.getRole() == Role.ADMIN;
     }
 }

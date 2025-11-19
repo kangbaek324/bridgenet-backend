@@ -12,6 +12,4 @@ public class ChainGetDetailDTO {
     private String chainName;
     private String smartContractAddress;
     private Long smartContractValue;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }
