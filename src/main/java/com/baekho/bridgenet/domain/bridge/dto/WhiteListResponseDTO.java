@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.whiteList.dto;
+package com.baekho.bridgenet.domain.bridge.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

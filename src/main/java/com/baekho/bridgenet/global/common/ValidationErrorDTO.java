@@ -1,4 +1,4 @@
-package com.baekho.springClass.dto;
+package com.baekho.bridgenet.global.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

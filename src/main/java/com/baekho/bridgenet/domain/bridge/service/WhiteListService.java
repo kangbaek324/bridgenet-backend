@@ -1,9 +1,9 @@
-package com.baekho.bridgenet.domain.whiteList.service;
+package com.baekho.bridgenet.domain.bridge.service;
 
-import com.baekho.bridgenet.domain.whiteList.dto.WhiteListRequestDTO;
-import com.baekho.bridgenet.domain.whiteList.dto.WhiteListResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.WhiteListRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.WhiteListResponseDTO;
 import com.baekho.bridgenet.global.common.code.WhiteListErrorCode;
-import com.baekho.bridgenet.global.common.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.global.common.exception.WhiteListException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -22,13 +22,13 @@ public class WhiteListService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Users user = (Users) authentication.getPrincipal();
 
-        Long networkId = dto.getNetworkId();
+        Long chainId = dto.getChainId();
         TransactionReceipt receipt;
 
-        if (networkId == 11155111) {
+        if (chainId == 11155111) {
             receipt = sepoliaBridge.setWhiteList(user.getAddress(), true).send();
         }
-        else if (networkId == 80002) {
+        else if (chainId == 80002) {
             receipt = amoyBridge.setWhiteList(user.getAddress(), true).send();
         }
         else {
