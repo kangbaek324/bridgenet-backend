@@ -5,17 +5,23 @@ import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.exception.ChainException;
+import com.baekho.bridgenet.global.config.BlockchainConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ChainService {
     private final ChainsRepository chainsRepository;
+    private final BlockchainConfig blockchainConfig;
+    private final Map<Long, Bridge> bridgeMap;
 
     public ChainListGetResponseDTO getChainList() {
         List<Chains> chains = chainsRepository.findAll();
@@ -35,6 +41,7 @@ public class ChainService {
         return new ChainListGetResponseDTO(chainGetDetailDTOS);
     }
 
+    @Transactional
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
         Optional<Chains> existing = chainsRepository.findByChainId(dto.getChainId());
         if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_ID);
@@ -50,6 +57,9 @@ public class ChainService {
 
         chainsRepository.save(chain);
 
+        Bridge bridge = blockchainConfig.createBridgeObject(chain);
+        bridgeMap.put(chain.getChainId(), bridge);
+
         return new ChainAddResponseDTO(
                 chain.getId(),
                 chain.getChainId(),
@@ -61,6 +71,7 @@ public class ChainService {
         );
     }
 
+    @Transactional
     public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long id) {
         Chains chain = chainsRepository.findById(id)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
@@ -73,6 +84,9 @@ public class ChainService {
 
         chainsRepository.save(chain);
 
+        Bridge bridge = blockchainConfig.createBridgeObject(chain);
+        bridgeMap.put(chain.getChainId(), bridge);
+
         return new ChainUpdateResponseDTO(
                 chain.getId(),
                 chain.getChainId(),
@@ -84,10 +98,13 @@ public class ChainService {
         );
     }
 
+    @Transactional
     public void removeChain(Long id) {
         Chains chain = chainsRepository.findById(id)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-
         chainsRepository.delete(chain);
+
+        blockchainConfig.createBridgeObject(chain);
+        bridgeMap.remove(chain.getChainId());
     }
 }
