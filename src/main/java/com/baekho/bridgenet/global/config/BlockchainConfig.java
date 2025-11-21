@@ -5,7 +5,6 @@ import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.web3j.crypto.Credentials;
@@ -37,30 +36,31 @@ public class BlockchainConfig {
         List<Chains> chains = chainsRepository.findAll();
 
         for (Chains chain : chains) {
-            Web3j web3j = Web3j.build(new HttpService(chain.getHttpRpc()));
-
-            TransactionManager txManager = new RawTransactionManager(
-                    web3j,
-                    credentials,
-                    chain.getChainId()
-            );
-
-            Bridge bridge;
-
-            // @TODO 체인별 가스 저장 필요
-            bridge = Bridge.load(
-                    chain.getSmartContractAddress(),
-                    web3j,
-                    txManager,
-                    new StaticEIP1559GasProvider(
-                            chain.getChainId(),
-                            BigInteger.valueOf(50_000_000_000L),
-                            BigInteger.valueOf(25_000_000_000L),
-                            BigInteger.valueOf(150000)
-                    )
-            );
-
+            Bridge bridge = createBridgeObject(chain);
             bridgeMap.put(chain.getChainId(), bridge);
         }
+    }
+
+    public Bridge createBridgeObject(Chains chain) {
+        Web3j web3j = Web3j.build(new HttpService(chain.getHttpRpc()));
+
+        TransactionManager txManager = new RawTransactionManager(
+                web3j,
+                credentials,
+                chain.getChainId()
+        );
+
+        // @TODO 체인별 가스 저장 필요
+        return Bridge.load(
+                chain.getSmartContractAddress(),
+                web3j,
+                txManager,
+                new StaticEIP1559GasProvider(
+                        chain.getChainId(),
+                        BigInteger.valueOf(50_000_000_000L),
+                        BigInteger.valueOf(25_000_000_000L),
+                        BigInteger.valueOf(150000)
+                )
+        );
     }
 }
