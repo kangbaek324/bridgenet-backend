@@ -36,7 +36,7 @@ public class BridgeService {
         exchangeRequestOptionRepository.save(option);
     }
 
-    public List<BridgeHistoryResponseDTO> getMyExchangeHistory(Users user) {
+    public List<BridgeHistoryResponseDTO> getExchangeHistory(Users user) {
         List<ExchangeHistory> DB = exchangeHistoryRepository.findAllByUser(user);
         List<BridgeHistoryResponseDTO> result = new ArrayList<>();
 
