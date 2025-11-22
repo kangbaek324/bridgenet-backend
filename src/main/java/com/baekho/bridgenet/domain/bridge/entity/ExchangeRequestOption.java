@@ -19,14 +19,14 @@ public class ExchangeRequestOption {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "auto_approve")
+    @Column(name = "auto_approve", nullable = false)
     private boolean autoApprove;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @OneToOne
-    @JoinColumn(name = "updated_user_id")
+    @JoinColumn(name = "updated_user_id", nullable = false)
     private Users updatedUser;
 }

@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ChainAddResponseDTO {
-    private Long id;
     private Long chainId;
     private String chainName;
     private String smartContractAddress;

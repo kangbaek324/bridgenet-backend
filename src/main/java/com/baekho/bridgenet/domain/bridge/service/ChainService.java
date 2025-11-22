@@ -16,9 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+
 @Service
 @RequiredArgsConstructor
 public class ChainService {
+    /**
+     *  * @TODO
+     *  * 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
+     */
     private final ChainsRepository chainsRepository;
     private final BlockchainConfig blockchainConfig;
     private final Map<Long, Bridge> bridgeMap;
@@ -30,7 +35,7 @@ public class ChainService {
         for(Chains chain : chains) {
             chainGetDetailDTOS.add(
                     new ChainGetDetailDTO(
-                            chain.getId(),
+                            chain.getChainId(),
                             chain.getChainName(),
                             chain.getSmartContractAddress(),
                             chain.getSmartContractValue()
@@ -61,7 +66,6 @@ public class ChainService {
         bridgeMap.put(chain.getChainId(), bridge);
 
         return new ChainAddResponseDTO(
-                chain.getId(),
                 chain.getChainId(),
                 chain.getChainName(),
                 chain.getSmartContractAddress(),
@@ -72,8 +76,8 @@ public class ChainService {
     }
 
     @Transactional
-    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long id) {
-        Chains chain = chainsRepository.findById(id)
+    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) {
+        Chains chain = chainsRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         chain.setChainName(dto.getChainName());
@@ -88,7 +92,6 @@ public class ChainService {
         bridgeMap.put(chain.getChainId(), bridge);
 
         return new ChainUpdateResponseDTO(
-                chain.getId(),
                 chain.getChainId(),
                 chain.getChainName(),
                 chain.getSmartContractAddress(),
@@ -99,8 +102,8 @@ public class ChainService {
     }
 
     @Transactional
-    public void removeChain(Long id) {
-        Chains chain = chainsRepository.findById(id)
+    public void removeChain(Long chainId) {
+        Chains chain = chainsRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         chainsRepository.delete(chain);
 

@@ -1,6 +1,7 @@
 package com.baekho.bridgenet.domain.bridge.controller;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.bridge.dto.BridgeHistoryResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.RequestOptionSetRequestDTO;
 import com.baekho.bridgenet.domain.bridge.service.BridgeService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
@@ -11,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,5 +32,15 @@ public class BridgeController {
         bridgeService.setRequestOptionStatus(dto, user);
 
         return ResponseEntity.ok(new SuccessResponse<>("", null));
+    }
+
+    @GetMapping("history/my")
+    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getMyExchangeHistory() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Users user = (Users) authentication.getPrincipal();
+
+        List<BridgeHistoryResponseDTO> result = bridgeService.getMyExchangeHistory(user);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 }

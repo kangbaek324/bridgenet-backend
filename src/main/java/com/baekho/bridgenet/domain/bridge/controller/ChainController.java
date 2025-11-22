@@ -34,18 +34,18 @@ public class ChainController {
     @PutMapping("{id}")
     public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
             @Valid @RequestBody ChainUpdateRequestDTO dto,
-            @PathVariable Long id
+            @PathVariable Long chainId
     ) {
-        ChainUpdateResponseDTO result = chainService.changeChain(dto, id);
+        ChainUpdateResponseDTO result = chainService.changeChain(dto, chainId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
     @DeleteMapping("{id}")
     public void removeChain(
-            @PathVariable Long id
+            @PathVariable Long chainId
     ) {
-         chainService.removeChain(id);
+         chainService.removeChain(chainId);
 
         return;
     }
