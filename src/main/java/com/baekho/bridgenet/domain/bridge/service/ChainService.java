@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,7 @@ public class ChainService {
                 .smartContractValue(dto.getSmartContractValue())
                 .httpRpc(dto.getHttpRpc())
                 .wsRpc(dto.getWsRpc())
+                .lastBlockNumber(BigInteger.valueOf(0))
                 .build();
 
         chainsRepository.save(chain);

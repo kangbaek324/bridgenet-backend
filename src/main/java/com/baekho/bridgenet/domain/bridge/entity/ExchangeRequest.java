@@ -2,12 +2,18 @@ package com.baekho.bridgenet.domain.bridge.entity;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "exchange_request")
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExchangeRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

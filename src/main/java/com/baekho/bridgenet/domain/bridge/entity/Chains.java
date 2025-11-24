@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Entity
@@ -35,6 +35,9 @@ public class Chains {
     @Column(name = "ws_rpc", nullable = false)
     String wsRpc;
 
+    @Column(name = "last_block_number", nullable = false)
+    BigInteger lastBlockNumber;
+
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     LocalDateTime createdAt;
@@ -42,5 +45,4 @@ public class Chains {
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     LocalDateTime updatedAt;
-
 }

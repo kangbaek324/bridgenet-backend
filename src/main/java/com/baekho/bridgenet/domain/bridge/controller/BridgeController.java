@@ -38,6 +38,14 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
+    @PostMapping("request/{requestId}")
+    public ResponseEntity<SuccessResponse<Void>> setRequest(
+            @PathVariable Long requestId
+    ) {
+
+        return ResponseEntity.ok(new SuccessResponse<>("" , null));
+    }
+
     @GetMapping("history/my")
     public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getMyExchangeHistory() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
