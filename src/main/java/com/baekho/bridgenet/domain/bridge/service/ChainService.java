@@ -1,17 +1,21 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
+import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import com.baekho.bridgenet.domain.bridge.dto.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
+import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.config.BlockchainConfig;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.Credentials;
-import org.web3j.crypto.RawTransaction;
+import org.web3j.protocol.Web3j;
+import org.web3j.utils.Convert;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -22,6 +26,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChainService {
     /**
      *  * @TODO
@@ -117,14 +122,18 @@ public class ChainService {
     }
 
     public void addContractBalance(AddContractBalanceRequestDTO dto, Long chainId) {
-//        Chains chain = chainsRepository.findByChainId(chainId)
-//            .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-//
-//        Bridge bridge = bridgeMap.get(chain.getChainId());
-//        String sendAddress = bridge.getContractAddress();
-//
-//        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(
-//
-//        )
+        Chains chain = chainsRepository.findByChainId(chainId)
+            .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        // @TODO 체인별 가스 지정 필요
+        try {
+            Bridge bridge = bridgeMap.get(chain.getChainId());
+            bridge.addBalance(
+                    Convert.toWei(dto.getBalance(), Convert.Unit.ETHER).toBigInteger()
+            ).send();
+        } catch (Exception e) {
+            log.error("Add Contract Balance Error: {}", e.getMessage(), e);
+            throw new BlockchainException(BlockchainErrorCode.ERROR);
+        }
     }
 }

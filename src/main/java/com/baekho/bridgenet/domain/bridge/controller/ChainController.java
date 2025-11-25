@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/bridge/chain")
@@ -51,9 +53,11 @@ public class ChainController {
 
     @PostMapping("{chainId}/contract/balance")
     public ResponseEntity<SuccessResponse<Void>> addContractBalance(
-            @RequestBody AddContractBalanceRequestDTO dto,
+            @Valid @RequestBody AddContractBalanceRequestDTO dto,
             @PathVariable Long chainId
     ) {
+        if (dto.getBalance().compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("값이 0이 될 수 없습니다.");
+
         chainService.addContractBalance(dto, chainId);
         return ResponseEntity.ok(new SuccessResponse<>("" , null));
     }

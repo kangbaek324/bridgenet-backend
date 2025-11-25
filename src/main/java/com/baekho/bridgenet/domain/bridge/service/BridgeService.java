@@ -11,12 +11,12 @@ import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
-import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.BridgeErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.BridgeException;
+import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,8 +34,6 @@ import java.util.Map;
 public class BridgeService {
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
-    private final UserRepository userRepository;
-    private final ChainsRepository chainsRepository;
 
     private final Map<Long, Bridge> bridgeMap;
 
@@ -113,7 +111,7 @@ public class BridgeService {
                  TransactionReceipt recepit = bridge.triggerPayout(request.getUser().getAddress(), request.getFromValue()).send();
                  transactionHash = recepit.getTransactionHash();
             } catch (Exception e) {
-                log.error("Trigger Payout Error: {}", e);
+                log.error("Trigger Payout Error: {}", e.getMessage(), e);
                 throw new BlockchainException(BlockchainErrorCode.ERROR);
             }
         }

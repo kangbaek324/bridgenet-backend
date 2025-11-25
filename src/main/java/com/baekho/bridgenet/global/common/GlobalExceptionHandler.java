@@ -86,7 +86,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse<String>> illegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse<>("잘못된 인자값 입니다."));
+                .body(new ErrorResponse<>(e.getMessage() == null ? "잘못된 인자값 입니다." : e.getMessage()));
     }
 
     // 401

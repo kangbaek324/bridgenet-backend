@@ -1,5 +1,6 @@
 package com.baekho.bridgenet.global.config;
 
+import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
@@ -8,11 +9,8 @@ import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
-import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
-import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
-import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +45,8 @@ public class BlockchainConfig {
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final Map<Long, Bridge> bridgeMap = new HashMap<>();
-    private final Map<Long, Web3j> web3jMap = new HashMap<>();
+    private final Map<Long, Web3j> wsWeb3jMap = new HashMap<>();
+    private final Map<Long, Web3j> httpWeb3jMap = new HashMap<>();
     private final Credentials credentials;
 
     @Bean
@@ -56,7 +55,10 @@ public class BlockchainConfig {
     }
 
     @Bean
-    public Map<Long, Web3j> web3jMap() { return web3jMap; }
+    public Map<Long, Web3j> wsWeb3jMap() { return wsWeb3jMap; }
+
+    @Bean
+    public Map<Long, Web3j> httpWeb3jMap() { return httpWeb3jMap; }
 
     @PostConstruct
     public void init() {
@@ -80,7 +82,7 @@ public class BlockchainConfig {
             ws.connect();
 
             Web3j web3j = Web3j.build(ws);
-            web3jMap.put(chain.getChainId(), web3j);
+            wsWeb3jMap.put(chain.getChainId(), web3j);
 
             subscribeToContractEvents(bridge, chain);
 
@@ -114,6 +116,7 @@ public class BlockchainConfig {
 
     public Bridge createBridgeObject(Chains chain) {
         Web3j web3j = Web3j.build(new HttpService(chain.getHttpRpc()));
+        httpWeb3jMap.put(chain.getChainId(), web3j);
 
         TransactionManager txManager = new RawTransactionManager(
                 web3j,
@@ -136,7 +139,7 @@ public class BlockchainConfig {
     }
 
     @Transactional
-    private void saveRequest(com.baekho.bridgenet.global.blockchain.bridgenet.Bridge.RequestedEventResponse res) {
+    private void saveRequest(Bridge.RequestedEventResponse res) {
         Bridge.RequestInfo request = res.request;
 
         Optional<Users> userOpt = userRepository.findByAddress(res.requestAddress);

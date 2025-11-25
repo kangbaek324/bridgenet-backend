@@ -85,6 +85,25 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address",
+        "name": "_address",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "AddBalance",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "uint256",
         "name": "chainId",
@@ -241,6 +260,13 @@
     ],
     "name": "WhitelistUpdated",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "addBalance",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -475,7 +501,7 @@
         "internalType": "address",
         "name": "",
         "type": "address"
-      }E
+      }
     ],
     "name": "whiteList",
     "outputs": [
