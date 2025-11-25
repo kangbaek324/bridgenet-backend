@@ -1,8 +1,10 @@
 package com.baekho.bridgenet.domain.bridge.dto;
 
+import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Getter
@@ -10,8 +12,10 @@ import java.time.LocalDateTime;
 public class BridgeHistoryResponseDTO {
     private Long id;
     private Long fromChainId;
-    private String fromValue;
+    private BigInteger fromValue;
     private Long toChainId;
-    private String toValue;
+    private BigInteger toValue;
+    private RequestStatus status;
+    private String transactionHash;
     private LocalDateTime exchangedAt;
 }

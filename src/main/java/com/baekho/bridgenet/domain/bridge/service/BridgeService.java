@@ -2,10 +2,10 @@ package com.baekho.bridgenet.domain.bridge.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
+import com.baekho.bridgenet.domain.bridge.dto.BridgeHistoryResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.RequestOptionSetRequestDTO;
-import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
@@ -14,21 +14,19 @@ import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.BridgeErrorCode;
-import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.BridgeException;
-import com.baekho.bridgenet.global.common.exception.ChainException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -57,25 +55,45 @@ public class BridgeService {
         exchangeRequestOptionRepository.save(option);
     }
 
-//    public List<BridgeHistoryResponseDTO> getExchangeHistory(Users user) {
-//        List<ExchangeHistory> DB = exchangeHistoryRepository.findAllByUser(user);
-//        List<BridgeHistoryResponseDTO> result = new ArrayList<>();
-//
-//        for (ExchangeHistory exchangeHistory : DB) {
-//            result.add(
-//                    new BridgeHistoryResponseDTO(
-//                            exchangeHistory.getId(),
-//                            exchangeHistory.getFromChain().getChainId(),
-//                            exchangeHistory.getFromValue().toString(),
-//                            exchangeHistory.getToChain().getChainId(),
-//                            exchangeHistory.getToValue().toString(),
-//                            exchangeHistory.getExchangedAt()
-//                    )
-//            );
-//        }
-//
-//        return result;
-//    }
+    public List<BridgeHistoryResponseDTO> getExchangeHistory(Users user, String status) {
+        List<ExchangeRequest> DB;
+
+        if (status == null) {
+            DB = exchangeRequestRepository.findAllByUser(user);
+        }
+        else {
+            RequestStatus statusType = null;
+            status = status.toLowerCase();
+
+            statusType = switch (status) {
+                case "approve" -> RequestStatus.APPROVE;
+                case "reject" -> RequestStatus.REJECT;
+                case "pending" -> RequestStatus.PENDING;
+                default -> throw new IllegalArgumentException("잘못된 인자값입니다");
+            };
+
+            DB = exchangeRequestRepository.findAllByApproveStatus(statusType);
+        }
+
+        List<BridgeHistoryResponseDTO> result = new ArrayList<>();
+
+        for (ExchangeRequest exchangeRequest : DB) {
+            result.add(
+                new BridgeHistoryResponseDTO(
+                        exchangeRequest.getId(),
+                        exchangeRequest.getFromChain().getChainId(),
+                        exchangeRequest.getFromValue(),
+                        exchangeRequest.getToChain().getChainId(),
+                        exchangeRequest.getToValue(),
+                        exchangeRequest.getApproveStatus(),
+                        exchangeRequest.getTransactionHash(),
+                        exchangeRequest.getApprovedAt()
+                )
+            );
+        }
+
+        return result;
+    }
 
     @Transactional
     public ExchangeApproveResponseDTO setRequest(ExchangeApproveRequestDTO dto, Long id, Users user) {

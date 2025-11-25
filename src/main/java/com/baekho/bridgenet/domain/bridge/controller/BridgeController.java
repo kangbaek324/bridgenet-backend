@@ -53,25 +53,28 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("" , result));
     }
 
-//    @GetMapping("history/my")
-//    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getMyExchangeHistory() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        Users user = (Users) authentication.getPrincipal();
-//
-//        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user);
-//
-//        return ResponseEntity.ok(new SuccessResponse<>("", result));
-//    }
-//
-//    @GetMapping("history/{userId}")
-//    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getUserExchangeHistory(
-//            @PathVariable Long userId
-//    ) {
-//        Users user = userRepository.findById(userId)
-//                .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USER));
-//
-//        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user);
-//
-//        return ResponseEntity.ok(new SuccessResponse<>("", result));
-//    }
+    @GetMapping("history/my")
+    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getMyExchangeHistory(
+            @RequestParam(value = "status", required = false) String status
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Users user = (Users) authentication.getPrincipal();
+
+        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user, status);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
+    @GetMapping("history/{userId}")
+    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getUserExchangeHistory(
+            @RequestParam(value = "status", required = false) String status,
+            @PathVariable Long userId
+    ) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USER));
+
+        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user, status);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
 }

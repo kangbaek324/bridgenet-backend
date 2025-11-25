@@ -82,16 +82,23 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
     }
 
+    // 400
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse<String>> illegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse<>("잘못된 인자값 입니다."));
+    }
+
     // 401
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse<String>> accessDenied(AccessDeniedException e) {
+    public ResponseEntity<ErrorResponse<String>> accessDeniedException(AccessDeniedException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse<>("접근 권한이 없습니다"));
     }
 
     // 404
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse<String>> handleResponseResponseEntity(NoHandlerFoundException e) {
+    public ResponseEntity<ErrorResponse<String>> noHandlerFoundException(NoHandlerFoundException e) {
         return ResponseEntity.status(404).body(new ErrorResponse<>(e.getMessage()));
     }
 
