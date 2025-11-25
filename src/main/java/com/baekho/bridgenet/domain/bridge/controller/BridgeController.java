@@ -3,6 +3,8 @@ package com.baekho.bridgenet.domain.bridge.controller;
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import com.baekho.bridgenet.domain.bridge.dto.BridgeHistoryResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.RequestOptionSetRequestDTO;
 import com.baekho.bridgenet.domain.bridge.service.BridgeService;
 import com.baekho.bridgenet.global.common.code.AuthErrorCode;
@@ -38,33 +40,38 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
-    @PostMapping("request/{requestId}")
-    public ResponseEntity<SuccessResponse<Void>> setRequest(
-            @PathVariable Long requestId
+    @PostMapping("request/{id}")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<ExchangeApproveResponseDTO>> setRequest(
+            @PathVariable Long id,
+            @Valid @RequestBody ExchangeApproveRequestDTO dto
     ) {
-
-        return ResponseEntity.ok(new SuccessResponse<>("" , null));
-    }
-
-    @GetMapping("history/my")
-    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getMyExchangeHistory() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Users user = (Users) authentication.getPrincipal();
 
-        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user);
-
-        return ResponseEntity.ok(new SuccessResponse<>("", result));
+        ExchangeApproveResponseDTO result = bridgeService.setRequest(dto, id, user);
+        return ResponseEntity.ok(new SuccessResponse<>("" , result));
     }
 
-    @GetMapping("history/{userId}")
-    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getUserExchangeHistory(
-            @PathVariable Long userId
-    ) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USER));
-
-        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user);
-
-        return ResponseEntity.ok(new SuccessResponse<>("", result));
-    }
+//    @GetMapping("history/my")
+//    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getMyExchangeHistory() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        Users user = (Users) authentication.getPrincipal();
+//
+//        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user);
+//
+//        return ResponseEntity.ok(new SuccessResponse<>("", result));
+//    }
+//
+//    @GetMapping("history/{userId}")
+//    public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getUserExchangeHistory(
+//            @PathVariable Long userId
+//    ) {
+//        Users user = userRepository.findById(userId)
+//                .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USER));
+//
+//        List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user);
+//
+//        return ResponseEntity.ok(new SuccessResponse<>("", result));
+//    }
 }

@@ -1,17 +1,29 @@
 package com.baekho.bridgenet.global.config;
 
+import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
+import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
+import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
-import com.baekho.bridgenet.domain.bridge.service.BridgeService;
+import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
+import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
+import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
+import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.RequestStatus;
+import com.baekho.bridgenet.global.common.exception.BlockchainException;
+import com.baekho.bridgenet.global.common.exception.ChainException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.tx.RawTransactionManager;
@@ -20,16 +32,20 @@ import org.web3j.tx.gas.StaticEIP1559GasProvider;
 
 import java.math.BigInteger;
 import java.net.ConnectException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
 public class BlockchainConfig {
     private final ChainsRepository chainsRepository;
-    private final BridgeService bridgeService;
+    private final UserRepository userRepository;
+    private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
+    private final ExchangeRequestRepository exchangeRequestRepository;
     private final Map<Long, Bridge> bridgeMap = new HashMap<>();
     private final Map<Long, Web3j> web3jMap = new HashMap<>();
     private final Credentials credentials;
@@ -70,9 +86,9 @@ public class BlockchainConfig {
 
             log.info("WebSocket 연결 성공 - Chain: {}", chain.getChainName());
         } catch (ConnectException e) {
-            log.error("WebSocket Connect Error: {}", e);
+            log.error("WebSocket Connect Error: {}", e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Error: {}", e);
+            log.error("Error: {}", e.getMessage(), e);
         }
     }
 
@@ -84,9 +100,9 @@ public class BlockchainConfig {
                 event -> {
                     log.info("RequestEvent: Request ID: {}", event.request.id);
                     try {
-                        bridgeService.saveRequest(event);
+                        this.saveRequest(event);
                     } catch (Exception e) {
-                        log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e);
+                        log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e.getMessage(), e);
                     }
                 },
                 error -> {
@@ -117,5 +133,80 @@ public class BlockchainConfig {
                         BigInteger.valueOf(150000)
                 )
         );
+    }
+
+    @Transactional
+    private void saveRequest(com.baekho.bridgenet.global.blockchain.bridgenet.Bridge.RequestedEventResponse res) {
+        Bridge.RequestInfo request = res.request;
+
+        Optional<Users> userOpt = userRepository.findByAddress(res.requestAddress);
+        Optional<Chains> chainOpt = chainsRepository.findByChainId(request.fromChainId.longValue());
+
+        if (userOpt.isPresent() && chainOpt.isPresent()) {
+            Users user = userOpt.get();
+            Chains chain = chainOpt.get();
+
+            Chains toChain = chainsRepository.findByChainId(request.toChainId.longValue())
+                    .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+            Chains fromChain = chainsRepository.findByChainId(request.fromChainId.longValue())
+                    .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+            ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
+                .orElseGet(() -> {
+                    return ExchangeRequestOption.builder()
+                            .id(1L)
+                            .autoApprove(true)
+                            .updatedUser(user)
+                            .build();
+                });
+
+            ExchangeRequest.ExchangeRequestBuilder build = ExchangeRequest.builder()
+                .idInSmartContract(request.id)
+                .toChain(toChain)
+                .toValue(request.toValue)
+                .fromChain(fromChain)
+                .fromValue(request.fromValue)
+                .user(user);
+
+            // 처리 옵션 확인
+            if (option.isAutoApprove()) {
+                Bridge bridge = bridgeMap.get(toChain.getChainId());
+                String transactionHash = null;
+                boolean isBlockchainError = false;
+
+                try {
+                    TransactionReceipt receipt = bridge.triggerPayout(user.getAddress(), request.fromValue).send();
+                    transactionHash = receipt.getTransactionHash();
+                } catch (Exception e) {
+                    log.error("[SYSTEM PROCESSING] Trigger Payout Error: {}", e.getMessage(), e);
+                    isBlockchainError = true;
+                }
+
+                // 자동처리 중 오류 발생시 수동옵션으로 등록
+                if (isBlockchainError) {
+                    build.approveStatus(RequestStatus.PENDING);
+                }
+                else {
+                    build.approveStatus(RequestStatus.APPROVE);
+                    build.transactionHash(transactionHash);
+                    build.approvedAt(LocalDateTime.now());
+                }
+            }
+            else {
+                build.approveStatus(RequestStatus.PENDING);
+            }
+
+            exchangeRequestRepository.save(build.build());
+
+            chain.setLastBlockNumber(res.log.getBlockNumber());
+
+            log.info("Save RequestEvent Success: Request ID: {}", request.id);
+        }
+        else if (chainOpt.isEmpty()) {
+            log.warn("알 수 없는 체인: {}", request.fromChainId.longValue());
+        }
+        else {
+            log.warn("알 수 없는 주소: {}", res.requestAddress);
+        }
     }
 }

@@ -1,9 +1,6 @@
 package com.baekho.bridgenet.global.common;
 
-import com.baekho.bridgenet.global.common.exception.AuthException;
-import com.baekho.bridgenet.global.common.exception.BridgeException;
-import com.baekho.bridgenet.global.common.exception.ChainException;
-import com.baekho.bridgenet.global.common.exception.WhiteListException;
+import com.baekho.bridgenet.global.common.exception.*;
 import com.baekho.bridgenet.global.common.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -75,6 +72,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BridgeException.class)
     public ResponseEntity<ErrorResponse<String>> whiteListException(BridgeException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
+    }
+
+    @ExceptionHandler(BlockchainException.class)
+    public ResponseEntity<ErrorResponse<String>> blockchainException(BlockchainException e) {
         return ResponseEntity.status(e.getErrorCode().getHttpStatus())
                 .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
     }

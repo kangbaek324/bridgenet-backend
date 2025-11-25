@@ -2,26 +2,32 @@ package com.baekho.bridgenet.domain.bridge.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
-import com.baekho.bridgenet.domain.bridge.dto.BridgeHistoryResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.RequestOptionSetRequestDTO;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
-import com.baekho.bridgenet.domain.bridge.entity.ExchangeHistory;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
-import com.baekho.bridgenet.domain.bridge.repository.ExchangeHistoryRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
+import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
+import com.baekho.bridgenet.global.common.code.BridgeErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.RequestStatus;
+import com.baekho.bridgenet.global.common.exception.BlockchainException;
+import com.baekho.bridgenet.global.common.exception.BridgeException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -29,10 +35,11 @@ import java.util.Optional;
 @Slf4j
 public class BridgeService {
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
-    private final ExchangeHistoryRepository exchangeHistoryRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final UserRepository userRepository;
     private final ChainsRepository chainsRepository;
+
+    private final Map<Long, Bridge> bridgeMap;
 
     public void setRequestOptionStatus(RequestOptionSetRequestDTO dto, Users user) {
         ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
@@ -50,61 +57,60 @@ public class BridgeService {
         exchangeRequestOptionRepository.save(option);
     }
 
-    public List<BridgeHistoryResponseDTO> getExchangeHistory(Users user) {
-        List<ExchangeHistory> DB = exchangeHistoryRepository.findAllByUser(user);
-        List<BridgeHistoryResponseDTO> result = new ArrayList<>();
-
-        for (ExchangeHistory exchangeHistory : DB) {
-            result.add(
-                    new BridgeHistoryResponseDTO(
-                            exchangeHistory.getId(),
-                            exchangeHistory.getFromChain().getChainId(),
-                            exchangeHistory.getFromValue().toString(),
-                            exchangeHistory.getToChain().getChainId(),
-                            exchangeHistory.getToValue().toString(),
-                            exchangeHistory.getExchangedAt()
-                    )
-            );
-        }
-
-        return result;
-    }
+//    public List<BridgeHistoryResponseDTO> getExchangeHistory(Users user) {
+//        List<ExchangeHistory> DB = exchangeHistoryRepository.findAllByUser(user);
+//        List<BridgeHistoryResponseDTO> result = new ArrayList<>();
+//
+//        for (ExchangeHistory exchangeHistory : DB) {
+//            result.add(
+//                    new BridgeHistoryResponseDTO(
+//                            exchangeHistory.getId(),
+//                            exchangeHistory.getFromChain().getChainId(),
+//                            exchangeHistory.getFromValue().toString(),
+//                            exchangeHistory.getToChain().getChainId(),
+//                            exchangeHistory.getToValue().toString(),
+//                            exchangeHistory.getExchangedAt()
+//                    )
+//            );
+//        }
+//
+//        return result;
+//    }
 
     @Transactional
-    public void saveRequest(Bridge.RequestedEventResponse res) {
-        Bridge.RequestInfo request = res.request;
+    public ExchangeApproveResponseDTO setRequest(ExchangeApproveRequestDTO dto, Long id, Users user) {
+        ExchangeRequest request = exchangeRequestRepository.findById(id)
+                .orElseThrow(()-> new BridgeException(BridgeErrorCode.REQUEST_NOT_FOUND));
 
-        Optional<Users> userOpt = userRepository.findByAddress(res.requestAddress);
-        Optional<Chains> chainOpt = chainsRepository.findByChainId(request.fromChainId.longValue());
+        if (request.getApproveStatus() != RequestStatus.PENDING) throw new BridgeException(BridgeErrorCode.REQUEST_ALREADY_PROCESSED);
 
-        if (userOpt.isPresent() && chainOpt.isPresent()) {
-            Users user = userOpt.get();
-            Chains chain = chainOpt.get();
+        request.setApproveStatus(dto.getApproveStatus() ? RequestStatus.APPROVE : RequestStatus.REJECT);
+        request.setApproveUser(user);
+        request.setApprovedAt(LocalDateTime.now());
 
-            Chains toChain = chainsRepository.findByChainId(request.toChainId.longValue())
-                    .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-            Chains fromChain = chainsRepository.findByChainId(request.fromChainId.longValue())
-                    .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-
-            exchangeRequestRepository.save(
-                    ExchangeRequest.builder()
-                    .toChain(toChain)
-                    .toValue(request.toValue)
-                    .fromChain(fromChain)
-                    .fromValue(request.fromValue)
-                    .user(user)
-                    .build()
-            );
-
-            chain.setLastBlockNumber(res.log.getBlockNumber());
-
-            log.info("Save RequestEvent Success: Request ID: {}", request.id);
+        String transactionHash = "";
+        if (dto.getApproveStatus()) {
+            Bridge bridge = bridgeMap.get(request.getToChain().getChainId());
+            try {
+                 TransactionReceipt recepit = bridge.triggerPayout(request.getUser().getAddress(), request.getFromValue()).send();
+                 transactionHash = recepit.getTransactionHash();
+            } catch (Exception e) {
+                log.error("Trigger Payout Error: {}", e);
+                throw new BlockchainException(BlockchainErrorCode.ERROR);
+            }
         }
-        else if (chainOpt.isEmpty()) {
-            log.warn("알 수 없는 체인: {}", request.fromChainId.longValue());
-        }
-        else {
-            log.warn("알 수 없는 주소: {}", res.requestAddress);
-        }
+
+        request.setTransactionHash(transactionHash);
+
+        return new ExchangeApproveResponseDTO(
+                request.getId(),
+                request.getFromChain().getChainId(),
+                request.getFromValue(),
+                request.getToChain().getChainId(),
+                request.getToValue(),
+                request.getApproveStatus(),
+                transactionHash,
+                request.getApprovedAt()
+        );
     }
 }

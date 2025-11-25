@@ -1,6 +1,7 @@
 package com.baekho.bridgenet.domain.bridge.entity;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,9 @@ public class ExchangeRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
+    @Column(name = "id_in_smart_contract")
+    BigInteger idInSmartContract;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -38,7 +42,10 @@ public class ExchangeRequest {
     BigInteger toValue;
 
     @Column(name = "approve_status")
-    boolean approveStatus;
+    RequestStatus approveStatus;
+
+    @Column(name = "transaction_hash")
+    String transactionHash;
 
     @ManyToOne()
     @JoinColumn(name = "approve_user_id")

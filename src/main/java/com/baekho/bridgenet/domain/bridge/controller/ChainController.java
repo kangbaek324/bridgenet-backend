@@ -45,16 +45,16 @@ public class ChainController {
     public void removeChain(
             @PathVariable Long chainId
     ) {
-         chainService.removeChain(chainId);
-
+        chainService.removeChain(chainId);
         return;
     }
 
     @PostMapping("{chainId}/contract/balance")
     public ResponseEntity<SuccessResponse<Void>> addContractBalance(
+            @RequestBody AddContractBalanceRequestDTO dto,
             @PathVariable Long chainId
     ) {
-
+        chainService.addContractBalance(dto, chainId);
         return ResponseEntity.ok(new SuccessResponse<>("" , null));
     }
 }

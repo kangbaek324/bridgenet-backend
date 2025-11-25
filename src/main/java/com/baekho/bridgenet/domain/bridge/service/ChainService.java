@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.RawTransaction;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ public class ChainService {
      */
     private final ChainsRepository chainsRepository;
     private final BlockchainConfig blockchainConfig;
+    private final Credentials credentials;
     private final Map<Long, Bridge> bridgeMap;
 
     public ChainListGetResponseDTO getChainList() {
@@ -111,5 +114,17 @@ public class ChainService {
 
         blockchainConfig.createBridgeObject(chain);
         bridgeMap.remove(chain.getChainId());
+    }
+
+    public void addContractBalance(AddContractBalanceRequestDTO dto, Long chainId) {
+//        Chains chain = chainsRepository.findByChainId(chainId)
+//            .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+//
+//        Bridge bridge = bridgeMap.get(chain.getChainId());
+//        String sendAddress = bridge.getContractAddress();
+//
+//        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(
+//
+//        )
     }
 }
