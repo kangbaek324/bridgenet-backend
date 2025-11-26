@@ -1,6 +1,5 @@
 package com.baekho.bridgenet.global.config;
 
-import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
@@ -12,6 +11,7 @@ import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.ChainException;
+import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -142,7 +142,7 @@ public class BlockchainConfig {
     private void saveRequest(Bridge.RequestedEventResponse res) {
         Bridge.RequestInfo request = res.request;
 
-        Optional<Users> userOpt = userRepository.findByAddress(res.requestAddress);
+        Optional<Users> userOpt = userRepository.findByAddress(res.requestedBy);
         Optional<Chains> chainOpt = chainsRepository.findByChainId(request.fromChainId.longValue());
 
         if (userOpt.isPresent() && chainOpt.isPresent()) {
@@ -209,7 +209,7 @@ public class BlockchainConfig {
             log.warn("알 수 없는 체인: {}", request.fromChainId.longValue());
         }
         else {
-            log.warn("알 수 없는 주소: {}", res.requestAddress);
+            log.warn("알 수 없는 주소: {}", res.requestedBy);
         }
     }
 }

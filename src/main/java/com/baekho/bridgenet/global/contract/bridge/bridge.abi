@@ -144,7 +144,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "requestAddress",
+        "name": "requestedBy",
         "type": "address"
       },
       {
@@ -218,6 +218,12 @@
         "internalType": "enum Bridge.RequestStatus",
         "name": "requestStatus",
         "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "requestedBy",
+        "type": "address"
       }
     ],
     "name": "SetRequested",

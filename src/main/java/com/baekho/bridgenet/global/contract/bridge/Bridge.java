@@ -118,7 +118,7 @@ public class Bridge extends Contract {
     ;
 
     public static final Event SETREQUESTED_EVENT = new Event("SetRequested", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Uint8>(true) {}));
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Uint8>(true) {}, new TypeReference<Address>() {}));
     ;
 
     public static final Event TRIGGERPAYOUTED_EVENT = new Event("TriggerPayouted", 
@@ -261,7 +261,7 @@ public class Bridge extends Contract {
         for (Contract.EventValuesWithLog eventValues : valueList) {
             RequestedEventResponse typedResponse = new RequestedEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.requestAddress = (String) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.requestedBy = (String) eventValues.getIndexedValues().get(0).getValue();
             typedResponse.request = (RequestInfo) eventValues.getNonIndexedValues().get(0);
             responses.add(typedResponse);
         }
@@ -272,7 +272,7 @@ public class Bridge extends Contract {
         Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(REQUESTED_EVENT, log);
         RequestedEventResponse typedResponse = new RequestedEventResponse();
         typedResponse.log = log;
-        typedResponse.requestAddress = (String) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.requestedBy = (String) eventValues.getIndexedValues().get(0).getValue();
         typedResponse.request = (RequestInfo) eventValues.getNonIndexedValues().get(0);
         return typedResponse;
     }
@@ -297,6 +297,7 @@ public class Bridge extends Contract {
             typedResponse.log = eventValues.getLog();
             typedResponse.requestId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
             typedResponse.requestStatus = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
+            typedResponse.requestedBy = (String) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
         }
         return responses;
@@ -308,6 +309,7 @@ public class Bridge extends Contract {
         typedResponse.log = log;
         typedResponse.requestId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
         typedResponse.requestStatus = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
+        typedResponse.requestedBy = (String) eventValues.getNonIndexedValues().get(0).getValue();
         return typedResponse;
     }
 
@@ -631,7 +633,7 @@ public class Bridge extends Contract {
     }
 
     public static class RequestedEventResponse extends BaseEventResponse {
-        public String requestAddress;
+        public String requestedBy;
 
         public RequestInfo request;
     }
@@ -640,6 +642,8 @@ public class Bridge extends Contract {
         public BigInteger requestId;
 
         public BigInteger requestStatus;
+
+        public String requestedBy;
     }
 
     public static class TriggerPayoutedEventResponse extends BaseEventResponse {

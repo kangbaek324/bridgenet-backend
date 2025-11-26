@@ -1,14 +1,12 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import com.baekho.bridgenet.domain.bridge.dto.BridgeHistoryResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.RequestOptionSetRequestDTO;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
-import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
@@ -105,17 +103,27 @@ public class BridgeService {
         request.setApprovedAt(LocalDateTime.now());
 
         String transactionHash = "";
+        TransactionReceipt recepit;
         if (dto.getApproveStatus()) {
-            Bridge bridge = bridgeMap.get(request.getToChain().getChainId());
             try {
-                 TransactionReceipt recepit = bridge.triggerPayout(request.getUser().getAddress(), request.getFromValue()).send();
-                 transactionHash = recepit.getTransactionHash();
+                 Bridge bridge = bridgeMap.get(request.getToChain().getChainId());
+                 recepit = bridge.triggerPayout(request.getUser().getAddress(), request.getFromValue()).send();
             } catch (Exception e) {
                 log.error("Trigger Payout Error: {}", e.getMessage(), e);
                 throw new BlockchainException(BlockchainErrorCode.ERROR);
             }
         }
+        else {
+            try {
+                Bridge bridge = bridgeMap.get(request.getFromChain().getChainId());
+                recepit = bridge.cancelRequest(request.getIdInSmartContract()).send();
+            } catch (Exception e) {
+                log.error("Cancel Request Error: {}", e.getMessage(), e);
+                throw new BlockchainException(BlockchainErrorCode.ERROR);
+            }
+        }
 
+        transactionHash = recepit.getTransactionHash();
         request.setTransactionHash(transactionHash);
 
         return new ExchangeApproveResponseDTO(

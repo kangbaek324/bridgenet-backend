@@ -51,6 +51,14 @@ public class ChainController {
         return;
     }
 
+    @GetMapping("{chainId}/contract/balance")
+    public ResponseEntity<SuccessResponse<ContractBalanceGetResponseDTO>> getContractBalance(
+            @PathVariable Long chainId
+    ) {
+        ContractBalanceGetResponseDTO result = chainService.getContractBalance(chainId);
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
     @PostMapping("{chainId}/contract/balance")
     public ResponseEntity<SuccessResponse<Void>> addContractBalance(
             @Valid @RequestBody AddContractBalanceRequestDTO dto,

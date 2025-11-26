@@ -1,6 +1,5 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
-import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import com.baekho.bridgenet.domain.bridge.dto.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
@@ -9,14 +8,18 @@ import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.config.BlockchainConfig;
+import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.utils.Convert;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +39,7 @@ public class ChainService {
     private final BlockchainConfig blockchainConfig;
     private final Credentials credentials;
     private final Map<Long, Bridge> bridgeMap;
+    private final Map<Long, Web3j> httpWeb3jMap;
 
     public ChainListGetResponseDTO getChainList() {
         List<Chains> chains = chainsRepository.findAll();
@@ -119,6 +123,29 @@ public class ChainService {
 
         blockchainConfig.createBridgeObject(chain);
         bridgeMap.remove(chain.getChainId());
+    }
+
+    public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
+        Chains chain = chainsRepository.findById(chainId)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        Web3j web3j = httpWeb3jMap.get(chainId);
+
+        EthGetBalance balance;
+
+        try  {
+            balance = web3j.ethGetBalance(
+                    chain.getSmartContractAddress(),
+                    DefaultBlockParameterName.LATEST
+            ).send();
+        } catch (Exception e) {
+            log.error("Get Contract Balance Error: {}", e.getMessage(), e);
+            throw new BlockchainException(BlockchainErrorCode.ERROR);
+        }
+
+        return new ContractBalanceGetResponseDTO(
+                Convert.fromWei(new BigDecimal(balance.getBalance()), Convert.Unit.ETHER)
+        );
     }
 
     public void addContractBalance(AddContractBalanceRequestDTO dto, Long chainId) {
