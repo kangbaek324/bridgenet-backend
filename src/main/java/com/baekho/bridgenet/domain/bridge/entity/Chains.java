@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,33 +17,32 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Chains {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
-
-    @Column(name = "chain_id")
+    @Column(name = "chain_id", nullable = false)
     Long chainId;
 
-    @Column(name = "chain_name")
+    @Column(name = "chain_name", nullable = false)
     String chainName;
 
-    @Column(name = "smartcontract_address")
+    @Column(name = "smart_contract_address", nullable = false)
     String smartContractAddress;
 
-    @Column(name = "smartcontract_value")
+    @Column(name = "smart_contract_value", nullable = false)
     Long smartContractValue;
 
-    @Column(name = "http_rpc")
+    @Column(name = "http_rpc", nullable = false)
     String httpRpc;
 
-    @Column(name = "ws_rpc")
+    @Column(name = "ws_rpc", nullable = false)
     String wsRpc;
 
-    @Column(name = "created_at")
+    @Column(name = "last_block_number", nullable = false)
+    BigInteger lastBlockNumber;
+
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     LocalDateTime updatedAt;
-
 }

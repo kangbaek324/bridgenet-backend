@@ -7,9 +7,9 @@ import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.global.common.exception.ChainException;
+import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Map;
@@ -24,7 +24,7 @@ public class WhiteListService {
         Chains chain = chainsRepository.findByChainId(dto.getChainId())
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
-        TransactionReceipt receipt =  bridgeMap.get(chain.getChainId()).setWhiteList(user.getAddress(), true).send();
+        TransactionReceipt receipt = bridgeMap.get(chain.getChainId()).setWhiteList(user.getAddress(), true).send();
 
         return new WhiteListResponseDTO(receipt.getTransactionHash());
     }

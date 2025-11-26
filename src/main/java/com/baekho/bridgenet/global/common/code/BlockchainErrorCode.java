@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum BlockchainErrorCode implements ErrorCode {
-    ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "요청에 실패했습니다.");
+    ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "블록체인 요청증 실패했습니다.");
     private final HttpStatus httpStatus;
     private final String message;
 }

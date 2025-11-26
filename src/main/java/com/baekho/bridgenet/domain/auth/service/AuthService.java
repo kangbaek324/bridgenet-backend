@@ -146,7 +146,7 @@ public class AuthService {
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO dto, HttpServletResponse response) {
         Users user = userRepository.findByUsername(dto.getUsername())
-                .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USERNAME));
+                .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USER));
 
         Nonces nonce = nonceRepository.findByAddress(user.getAddress())
                 .orElseThrow(() -> new AuthException(AuthErrorCode.NONCE_NOT_FOUND));

@@ -3,25 +3,43 @@ package com.baekho.bridgenet.domain.bridge.service;
 import com.baekho.bridgenet.domain.bridge.dto.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
+import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.config.BlockchainConfig;
+import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import com.baekho.bridgenet.global.blockchain.bridgenet.Bridge;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.crypto.Credentials;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.response.EthGetBalance;
+import org.web3j.utils.Convert;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChainService {
+    /**
+     *  * @TODO
+     *  * 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
+     */
     private final ChainsRepository chainsRepository;
     private final BlockchainConfig blockchainConfig;
+    private final Credentials credentials;
     private final Map<Long, Bridge> bridgeMap;
+    private final Map<Long, Web3j> httpWeb3jMap;
 
     public ChainListGetResponseDTO getChainList() {
         List<Chains> chains = chainsRepository.findAll();
@@ -30,7 +48,7 @@ public class ChainService {
         for(Chains chain : chains) {
             chainGetDetailDTOS.add(
                     new ChainGetDetailDTO(
-                            chain.getId(),
+                            chain.getChainId(),
                             chain.getChainName(),
                             chain.getSmartContractAddress(),
                             chain.getSmartContractValue()
@@ -53,6 +71,7 @@ public class ChainService {
                 .smartContractValue(dto.getSmartContractValue())
                 .httpRpc(dto.getHttpRpc())
                 .wsRpc(dto.getWsRpc())
+                .lastBlockNumber(BigInteger.valueOf(0))
                 .build();
 
         chainsRepository.save(chain);
@@ -61,7 +80,6 @@ public class ChainService {
         bridgeMap.put(chain.getChainId(), bridge);
 
         return new ChainAddResponseDTO(
-                chain.getId(),
                 chain.getChainId(),
                 chain.getChainName(),
                 chain.getSmartContractAddress(),
@@ -72,8 +90,8 @@ public class ChainService {
     }
 
     @Transactional
-    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long id) {
-        Chains chain = chainsRepository.findById(id)
+    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) {
+        Chains chain = chainsRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         chain.setChainName(dto.getChainName());
@@ -88,7 +106,6 @@ public class ChainService {
         bridgeMap.put(chain.getChainId(), bridge);
 
         return new ChainUpdateResponseDTO(
-                chain.getId(),
                 chain.getChainId(),
                 chain.getChainName(),
                 chain.getSmartContractAddress(),
@@ -99,12 +116,51 @@ public class ChainService {
     }
 
     @Transactional
-    public void removeChain(Long id) {
-        Chains chain = chainsRepository.findById(id)
+    public void removeChain(Long chainId) {
+        Chains chain = chainsRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         chainsRepository.delete(chain);
 
         blockchainConfig.createBridgeObject(chain);
         bridgeMap.remove(chain.getChainId());
+    }
+
+    public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
+        Chains chain = chainsRepository.findById(chainId)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        Web3j web3j = httpWeb3jMap.get(chainId);
+
+        EthGetBalance balance;
+
+        try  {
+            balance = web3j.ethGetBalance(
+                    chain.getSmartContractAddress(),
+                    DefaultBlockParameterName.LATEST
+            ).send();
+        } catch (Exception e) {
+            log.error("Get Contract Balance Error: {}", e.getMessage(), e);
+            throw new BlockchainException(BlockchainErrorCode.ERROR);
+        }
+
+        return new ContractBalanceGetResponseDTO(
+                Convert.fromWei(new BigDecimal(balance.getBalance()), Convert.Unit.ETHER)
+        );
+    }
+
+    public void addContractBalance(AddContractBalanceRequestDTO dto, Long chainId) {
+        Chains chain = chainsRepository.findByChainId(chainId)
+            .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        // @TODO 체인별 가스 지정 필요
+        try {
+            Bridge bridge = bridgeMap.get(chain.getChainId());
+            bridge.addBalance(
+                    Convert.toWei(dto.getBalance(), Convert.Unit.ETHER).toBigInteger()
+            ).send();
+        } catch (Exception e) {
+            log.error("Add Contract Balance Error: {}", e.getMessage(), e);
+            throw new BlockchainException(BlockchainErrorCode.ERROR);
+        }
     }
 }

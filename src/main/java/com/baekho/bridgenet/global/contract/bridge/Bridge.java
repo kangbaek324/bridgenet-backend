@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.global.blockchain.bridgenet;
+package com.baekho.bridgenet.global.contract.bridge;
 
 import io.reactivex.Flowable;
 import java.math.BigInteger;
@@ -44,6 +44,8 @@ import org.web3j.tx.gas.ContractGasProvider;
 @SuppressWarnings("rawtypes")
 public class Bridge extends Contract {
     public static final String BINARY = "Bin file was not provided";
+
+    public static final String FUNC_ADDBALANCE = "addBalance";
 
     public static final String FUNC_ADDCHAIN = "addChain";
 
@@ -99,6 +101,10 @@ public class Bridge extends Contract {
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
     ;
 
+    public static final Event ADDBALANCE_EVENT = new Event("AddBalance", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
+    ;
+
     public static final Event CHAINLISTUPDATED_EVENT = new Event("ChainListUpdated", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Bool>() {}));
     ;
@@ -112,7 +118,7 @@ public class Bridge extends Contract {
     ;
 
     public static final Event SETREQUESTED_EVENT = new Event("SetRequested", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Uint8>(true) {}));
+            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}, new TypeReference<Uint8>(true) {}, new TypeReference<Address>() {}));
     ;
 
     public static final Event TRIGGERPAYOUTED_EVENT = new Event("TriggerPayouted", 
@@ -143,6 +149,40 @@ public class Bridge extends Contract {
     protected Bridge(String contractAddress, Web3j web3j, TransactionManager transactionManager,
             ContractGasProvider contractGasProvider) {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
+    }
+
+    public static List<AddBalanceEventResponse> getAddBalanceEvents(
+            TransactionReceipt transactionReceipt) {
+        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(ADDBALANCE_EVENT, transactionReceipt);
+        ArrayList<AddBalanceEventResponse> responses = new ArrayList<AddBalanceEventResponse>(valueList.size());
+        for (Contract.EventValuesWithLog eventValues : valueList) {
+            AddBalanceEventResponse typedResponse = new AddBalanceEventResponse();
+            typedResponse.log = eventValues.getLog();
+            typedResponse._address = (String) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.value = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+            responses.add(typedResponse);
+        }
+        return responses;
+    }
+
+    public static AddBalanceEventResponse getAddBalanceEventFromLog(Log log) {
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(ADDBALANCE_EVENT, log);
+        AddBalanceEventResponse typedResponse = new AddBalanceEventResponse();
+        typedResponse.log = log;
+        typedResponse._address = (String) eventValues.getNonIndexedValues().get(0).getValue();
+        typedResponse.value = (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
+        return typedResponse;
+    }
+
+    public Flowable<AddBalanceEventResponse> addBalanceEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getAddBalanceEventFromLog(log));
+    }
+
+    public Flowable<AddBalanceEventResponse> addBalanceEventFlowable(
+            DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
+        filter.addSingleTopic(EventEncoder.encode(ADDBALANCE_EVENT));
+        return addBalanceEventFlowable(filter);
     }
 
     public static List<ChainListUpdatedEventResponse> getChainListUpdatedEvents(
@@ -221,7 +261,7 @@ public class Bridge extends Contract {
         for (Contract.EventValuesWithLog eventValues : valueList) {
             RequestedEventResponse typedResponse = new RequestedEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.requestAddress = (String) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.requestedBy = (String) eventValues.getIndexedValues().get(0).getValue();
             typedResponse.request = (RequestInfo) eventValues.getNonIndexedValues().get(0);
             responses.add(typedResponse);
         }
@@ -232,7 +272,7 @@ public class Bridge extends Contract {
         Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(REQUESTED_EVENT, log);
         RequestedEventResponse typedResponse = new RequestedEventResponse();
         typedResponse.log = log;
-        typedResponse.requestAddress = (String) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.requestedBy = (String) eventValues.getIndexedValues().get(0).getValue();
         typedResponse.request = (RequestInfo) eventValues.getNonIndexedValues().get(0);
         return typedResponse;
     }
@@ -257,6 +297,7 @@ public class Bridge extends Contract {
             typedResponse.log = eventValues.getLog();
             typedResponse.requestId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
             typedResponse.requestStatus = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
+            typedResponse.requestedBy = (String) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
         }
         return responses;
@@ -268,6 +309,7 @@ public class Bridge extends Contract {
         typedResponse.log = log;
         typedResponse.requestId = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
         typedResponse.requestStatus = (BigInteger) eventValues.getIndexedValues().get(1).getValue();
+        typedResponse.requestedBy = (String) eventValues.getNonIndexedValues().get(0).getValue();
         return typedResponse;
     }
 
@@ -348,6 +390,14 @@ public class Bridge extends Contract {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
         filter.addSingleTopic(EventEncoder.encode(WHITELISTUPDATED_EVENT));
         return whitelistUpdatedEventFlowable(filter);
+    }
+
+    public RemoteFunctionCall<TransactionReceipt> addBalance(BigInteger weiValue) {
+        final Function function = new Function(
+                FUNC_ADDBALANCE, 
+                Arrays.<Type>asList(), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function, weiValue);
     }
 
     public RemoteFunctionCall<TransactionReceipt> addChain(BigInteger chainId) {
@@ -564,6 +614,12 @@ public class Bridge extends Contract {
         }
     }
 
+    public static class AddBalanceEventResponse extends BaseEventResponse {
+        public String _address;
+
+        public BigInteger value;
+    }
+
     public static class ChainListUpdatedEventResponse extends BaseEventResponse {
         public BigInteger chainId;
 
@@ -577,7 +633,7 @@ public class Bridge extends Contract {
     }
 
     public static class RequestedEventResponse extends BaseEventResponse {
-        public String requestAddress;
+        public String requestedBy;
 
         public RequestInfo request;
     }
@@ -586,6 +642,8 @@ public class Bridge extends Contract {
         public BigInteger requestId;
 
         public BigInteger requestStatus;
+
+        public String requestedBy;
     }
 
     public static class TriggerPayoutedEventResponse extends BaseEventResponse {
