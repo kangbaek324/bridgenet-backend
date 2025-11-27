@@ -2,9 +2,12 @@ package com.baekho.bridgenet.domain.bridge.service;
 
 import com.baekho.bridgenet.domain.bridge.dto.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
+import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
+import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.config.BlockchainConfig;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.utils.Convert;
 
@@ -36,6 +40,7 @@ public class ChainService {
      *  * 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
      */
     private final ChainsRepository chainsRepository;
+    private final ExchangeRequestRepository exchangeRequestRepository;
     private final BlockchainConfig blockchainConfig;
     private final Credentials credentials;
     private final Map<Long, Bridge> bridgeMap;
@@ -146,6 +151,32 @@ public class ChainService {
         return new ContractBalanceGetResponseDTO(
                 Convert.fromWei(new BigDecimal(balance.getBalance()), Convert.Unit.ETHER)
         );
+    }
+
+    public List<GetChainRankingResponseDTO> getChainRanking(String sort) {
+        List<List<Object>> chainRankingDB = switch (sort) {
+            case "in" -> exchangeRequestRepository.findTotalToValueByChain(RequestStatus.APPROVE);
+            case "out" -> exchangeRequestRepository.findTotalFromValueByChain(RequestStatus.APPROVE);
+            default -> throw new IllegalArgumentException("sort 는 in, out 만 허용합니다.");
+        };
+
+        List<GetChainRankingResponseDTO> chainRanking = new ArrayList<>();
+        int chainRankingIndex = 1;
+
+        for (List<Object> chain : chainRankingDB) {
+            chainRanking.add(
+                new GetChainRankingResponseDTO(
+                        chainRankingIndex,
+                        (Long) chain.get(0),
+                        (String) chain.get(1),
+                        (BigInteger) chain.get(2)
+                )
+            );
+
+            chainRankingIndex++;
+        }
+
+        return chainRanking;
     }
 
     public void addContractBalance(AddContractBalanceRequestDTO dto, Long chainId) {

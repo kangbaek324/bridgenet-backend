@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,6 +50,14 @@ public class ChainController {
     ) {
         chainService.removeChain(chainId);
         return;
+    }
+
+    @GetMapping("/ranking")
+    public ResponseEntity<SuccessResponse<List<GetChainRankingResponseDTO>>> getChainRanking(
+            @RequestParam(name = "sort", defaultValue = "in") String sort
+    ) {
+        List<GetChainRankingResponseDTO> result = chainService.getChainRanking(sort);
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
     @GetMapping("{chainId}/contract/balance")
