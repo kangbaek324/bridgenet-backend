@@ -4,6 +4,7 @@ import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -36,21 +37,25 @@ public class ExchangeRequest {
 
     @ManyToOne()
     @JoinColumn(name = "to_chain_id", nullable = false)
-    Chains toChain;
+    private Chains toChain;
 
     @Column(name = "to_value", nullable = false)
-    BigInteger toValue;
+    private BigInteger toValue;
 
     @Column(name = "approve_status")
-    RequestStatus approveStatus;
+    private RequestStatus approveStatus;
 
     @Column(name = "transaction_hash")
-    String transactionHash;
+    private String transactionHash;
 
     @ManyToOne()
     @JoinColumn(name = "approve_user_id")
-    Users approveUser;
+    private Users approveUser;
 
     @Column(name = "approved_at")
-    LocalDateTime approvedAt;
+    private LocalDateTime approvedAt;
+
+    @Column(name = "created_at")
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }

@@ -18,4 +18,5 @@ public class BridgeHistoryResponseDTO {
     private RequestStatus status;
     private String transactionHash;
     private LocalDateTime exchangedAt;
+    private LocalDateTime createdAt;
 }
