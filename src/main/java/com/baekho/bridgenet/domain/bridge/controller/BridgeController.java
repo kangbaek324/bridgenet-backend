@@ -12,6 +12,7 @@ import com.baekho.bridgenet.global.common.exception.AuthException;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -51,6 +52,21 @@ public class BridgeController {
 
         ExchangeApproveResponseDTO result = bridgeService.setRequest(dto, id, user);
         return ResponseEntity.ok(new SuccessResponse<>("" , result));
+    }
+
+    @GetMapping("history")
+    public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getExchangeHistory(
+            @RequestParam(name = "sort", defaultValue = "latest") String sortType,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "chainId", required = false) Long chainId,
+            @RequestParam(name = "direction", required = false) String direction,
+            @RequestParam(name = "status", required = false) String status
+    ) {
+        if (direction == null) direction = "";
+        Page<BridgeHistoryResponseDTO> result = bridgeService.getExchangeAllHistory(sortType, size, page, chainId, direction, status);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
     @GetMapping("history/my")

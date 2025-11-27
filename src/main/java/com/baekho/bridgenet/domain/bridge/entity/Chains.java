@@ -18,31 +18,31 @@ import java.time.LocalDateTime;
 public class Chains {
     @Id
     @Column(name = "chain_id", nullable = false)
-    Long chainId;
+    private Long chainId;
 
     @Column(name = "chain_name", nullable = false)
-    String chainName;
+    private String chainName;
 
     @Column(name = "smart_contract_address", nullable = false)
-    String smartContractAddress;
+    private String smartContractAddress;
 
     @Column(name = "smart_contract_value", nullable = false)
-    Long smartContractValue;
+    private Long smartContractValue;
 
     @Column(name = "http_rpc", nullable = false)
-    String httpRpc;
+    private String httpRpc;
 
     @Column(name = "ws_rpc", nullable = false)
-    String wsRpc;
+    private String wsRpc;
 
     @Column(name = "last_block_number", nullable = false)
-    BigInteger lastBlockNumber;
+    private BigInteger lastBlockNumber;
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
-    LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
-    LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 }

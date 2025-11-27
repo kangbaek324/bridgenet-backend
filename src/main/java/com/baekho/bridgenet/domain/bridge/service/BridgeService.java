@@ -9,6 +9,7 @@ import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
+import com.baekho.bridgenet.domain.bridge.sepcification.ExchangeRequestSpecification;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.BridgeErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
@@ -17,6 +18,11 @@ import com.baekho.bridgenet.global.common.exception.BridgeException;
 import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -51,6 +57,68 @@ public class BridgeService {
         exchangeRequestOptionRepository.save(option);
     }
 
+    public Page<BridgeHistoryResponseDTO> getExchangeAllHistory(
+            String sortType,
+            int size,
+            int page,
+            Long chainId,
+            String direction,
+            String status
+    ) {
+        Specification<ExchangeRequest> spec = Specification.unrestricted();
+        Sort sort = switch (sortType) {
+            case "latest" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "oldest" -> Sort.by(Sort.Direction.ASC, "createdAt");
+            case "highFromValue" -> Sort.by(Sort.Direction.DESC, "fromValue");
+            case "lowFromValue" -> Sort.by(Sort.Direction.ASC, "fromValue");
+            case "highToValue" -> Sort.by(Sort.Direction.DESC, "toValue");
+            case "lowToValue" -> Sort.by(Sort.Direction.ASC, "toValue");
+            default -> throw new IllegalArgumentException("sort 는 latest, oldest, highFromValue, lowFromValue, highToValue, lowToValue 만 허용합니다");
+        };
+        Pageable pageable= PageRequest.of(page, size, sort);
+
+        if (chainId == null && direction != null) {
+            throw new IllegalArgumentException("chainId만 존재하거나 chainId, direction 두가지가 동시에 존재해야합니다");
+        }
+
+        if (chainId != null) {
+            spec = spec.and(
+                    switch (direction) {
+                        case "in" -> ExchangeRequestSpecification.hasToChainId(chainId);
+                        case "out" -> ExchangeRequestSpecification.hasFromChainId(chainId);
+                        default -> ExchangeRequestSpecification.hasChainId(chainId);
+                    }
+            );
+        }
+
+        if (status != null) {
+            RequestStatus statusType = switch (status) {
+                case "approve" -> RequestStatus.APPROVE;
+                case "pending" -> RequestStatus.PENDING;
+                case "reject" -> RequestStatus.REJECT;
+                default -> throw new IllegalArgumentException("status 는 approve, pending, reject 만 허용합니다.");
+            };
+
+            spec = spec.and(ExchangeRequestSpecification.hasStatus(statusType));
+        }
+
+        Page<ExchangeRequest> exchangeRequestPage = exchangeRequestRepository.findAll(spec, pageable);
+
+        return exchangeRequestPage.map(exchangeRequest -> {
+            return new BridgeHistoryResponseDTO(
+                    exchangeRequest.getId(),
+                    exchangeRequest.getFromChain().getChainId(),
+                    exchangeRequest.getFromValue(),
+                    exchangeRequest.getToChain().getChainId(),
+                    exchangeRequest.getToValue(),
+                    exchangeRequest.getApproveStatus(),
+                    exchangeRequest.getTransactionHash(),
+                    exchangeRequest.getApprovedAt(),
+                    exchangeRequest.getCreatedAt()
+            );
+        });
+    }
+
     public List<BridgeHistoryResponseDTO> getExchangeHistory(Users user, String status) {
         List<ExchangeRequest> DB;
 
@@ -65,7 +133,7 @@ public class BridgeService {
                 case "approve" -> RequestStatus.APPROVE;
                 case "reject" -> RequestStatus.REJECT;
                 case "pending" -> RequestStatus.PENDING;
-                default -> throw new IllegalArgumentException("잘못된 인자값입니다");
+                default -> throw new IllegalArgumentException();
             };
 
             DB = exchangeRequestRepository.findAllByApproveStatus(statusType);
@@ -83,7 +151,8 @@ public class BridgeService {
                         exchangeRequest.getToValue(),
                         exchangeRequest.getApproveStatus(),
                         exchangeRequest.getTransactionHash(),
-                        exchangeRequest.getApprovedAt()
+                        exchangeRequest.getApprovedAt(),
+                        exchangeRequest.getCreatedAt()
                 )
             );
         }
