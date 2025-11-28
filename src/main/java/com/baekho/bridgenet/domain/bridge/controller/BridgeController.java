@@ -28,7 +28,7 @@ public class BridgeController {
     private final BridgeService bridgeService;
     private final UserRepository userRepository;
 
-    @PostMapping("request-option")
+    @PostMapping("request/option")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> setRequestOption(
             @Valid @RequestBody RequestOptionSetRequestDTO dto
@@ -54,7 +54,7 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("" , result));
     }
 
-    @GetMapping("history")
+    @GetMapping("request/history")
     public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getExchangeHistory(
             @RequestParam(name = "sort", defaultValue = "latest") String sortType,
             @RequestParam(name = "size", defaultValue = "10") int size,
@@ -69,7 +69,7 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
-    @GetMapping("history/my")
+    @GetMapping("request/history/my")
     public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getMyExchangeHistory(
             @RequestParam(value = "status", required = false) String status
     ) {
@@ -81,7 +81,7 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
-    @GetMapping("history/{userId}")
+    @GetMapping("request/history/{userId}")
     public ResponseEntity<SuccessResponse<List<BridgeHistoryResponseDTO>>> getUserExchangeHistory(
             @RequestParam(value = "status", required = false) String status,
             @PathVariable Long userId

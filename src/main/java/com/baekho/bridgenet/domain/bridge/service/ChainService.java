@@ -1,5 +1,6 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
+import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.bridge.dto.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
@@ -21,6 +22,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Convert;
 
 import java.math.BigDecimal;
@@ -193,5 +195,14 @@ public class ChainService {
             log.error("Add Contract Balance Error: {}", e.getMessage(), e);
             throw new BlockchainException(BlockchainErrorCode.ERROR);
         }
+    }
+
+    public WhiteListResponseDTO setWhiteList(WhiteListRequestDTO dto, Users user) throws Exception {
+        Chains chain = chainsRepository.findByChainId(dto.getChainId())
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        TransactionReceipt receipt = bridgeMap.get(chain.getChainId()).setWhiteList(user.getAddress(), true).send();
+
+        return new WhiteListResponseDTO(receipt.getTransactionHash());
     }
 }
