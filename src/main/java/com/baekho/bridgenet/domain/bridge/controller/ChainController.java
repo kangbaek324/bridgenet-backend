@@ -1,9 +1,14 @@
 package com.baekho.bridgenet.domain.bridge.controller;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.bridge.dto.*;
+import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.WhiteListRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.*;
 import com.baekho.bridgenet.domain.bridge.service.ChainService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +26,7 @@ import java.util.List;
 public class ChainController {
     private final ChainService chainService;
 
+    @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping("")
     public ResponseEntity<SuccessResponse<ChainListGetResponseDTO>> getChainList() {
         ChainListGetResponseDTO result = chainService.getChainList();
@@ -28,6 +34,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
+    @Operation(summary = "체인 추가", description = "새로운 체인을 추가합니다.")
     @PostMapping("")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainAddResponseDTO>> addChain(
@@ -37,6 +44,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
+    @Operation(summary = "체인 정보 변경", description = "체인의 정보를 변경합니다.")
     @PutMapping("{chainId}")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
@@ -48,6 +56,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
+    @Operation(summary = "체인 삭제", description = "체인을 삭제합니다.")
     @DeleteMapping("{chainId}")
     @PreAuthorize("@authService.isAdmin(principal)")
     public void removeChain(
@@ -57,6 +66,7 @@ public class ChainController {
         return;
     }
 
+    @Operation(summary = "체인 랭킹 조회", description = "자금 유입/유출순으로 랭킹을 조회합니다.")
     @GetMapping("/ranking")
     public ResponseEntity<SuccessResponse<List<GetChainRankingResponseDTO>>> getChainRanking(
             @RequestParam(name = "sort", defaultValue = "in") String sort
@@ -65,6 +75,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
+    @Operation(summary = "컨트랙트 코인양 조회", description = "컨트랙트에 남은 코인양을 조회합니다.")
     @GetMapping("{chainId}/contract/balance")
     public ResponseEntity<SuccessResponse<ContractBalanceGetResponseDTO>> getContractBalance(
             @PathVariable Long chainId
@@ -73,6 +84,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
+    @Operation(summary = "컨트랙트 코인 충전", description = "컨트랙트에 코인을 충전합니다")
     @PostMapping("{chainId}/contract/balance")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> addContractBalance(
@@ -85,6 +97,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("" , null));
     }
 
+    @Operation(summary = "컨트랙트 화이트리스트 등록", description = "자본을 옮길 컨트랙트에 화이트리스트 등록 요청을 보냅니다.")
     @PostMapping("{chainId}/contract/whitelist")
     public ResponseEntity<SuccessResponse<WhiteListResponseDTO>> setWhiteList(
             @Valid @RequestBody WhiteListRequestDTO dto

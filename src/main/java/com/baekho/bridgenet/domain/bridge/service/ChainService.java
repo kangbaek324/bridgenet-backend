@@ -1,9 +1,12 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.bridge.dto.*;
+import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.WhiteListRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
-import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
@@ -20,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Convert;

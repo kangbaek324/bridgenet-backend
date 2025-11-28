@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.auth.dto;
+package com.baekho.bridgenet.domain.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

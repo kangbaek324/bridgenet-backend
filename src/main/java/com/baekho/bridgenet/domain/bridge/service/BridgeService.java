@@ -1,10 +1,10 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.bridge.dto.BridgeHistoryResponseDTO;
-import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveResponseDTO;
-import com.baekho.bridgenet.domain.bridge.dto.RequestOptionSetRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.ExchangeApproveResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
