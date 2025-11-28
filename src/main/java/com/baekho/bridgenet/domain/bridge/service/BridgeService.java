@@ -77,7 +77,7 @@ public class BridgeService {
         };
         Pageable pageable= PageRequest.of(page, size, sort);
 
-        if (chainId == null && direction != null) {
+        if (chainId == null && !direction.isEmpty()) {
             throw new IllegalArgumentException("chainId만 존재하거나 chainId, direction 두가지가 동시에 존재해야합니다");
         }
 

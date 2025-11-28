@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/bridge/chain")
-@PreAuthorize("@authService.isAdmin(principal)")
 public class ChainController {
     private final ChainService chainService;
 
@@ -30,6 +29,7 @@ public class ChainController {
     }
 
     @PostMapping("")
+    @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainAddResponseDTO>> addChain(
             @Valid @RequestBody ChainAddRequestDTO dto
     ) {
@@ -38,6 +38,7 @@ public class ChainController {
     }
 
     @PutMapping("{chainId}")
+    @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
             @Valid @RequestBody ChainUpdateRequestDTO dto,
             @PathVariable Long chainId
@@ -48,6 +49,7 @@ public class ChainController {
     }
 
     @DeleteMapping("{chainId}")
+    @PreAuthorize("@authService.isAdmin(principal)")
     public void removeChain(
             @PathVariable Long chainId
     ) {
@@ -72,6 +74,7 @@ public class ChainController {
     }
 
     @PostMapping("{chainId}/contract/balance")
+    @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> addContractBalance(
             @Valid @RequestBody AddContractBalanceRequestDTO dto,
             @PathVariable Long chainId
@@ -82,7 +85,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("" , null));
     }
 
-    @PostMapping("{chainId}/contract/whitelist}")
+    @PostMapping("{chainId}/contract/whitelist")
     public ResponseEntity<SuccessResponse<WhiteListResponseDTO>> setWhiteList(
             @Valid @RequestBody WhiteListRequestDTO dto
     ) throws Exception {
