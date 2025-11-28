@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.bridge.dto;
+package com.baekho.bridgenet.domain.bridge.dto.response;
 
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import lombok.AllArgsConstructor;

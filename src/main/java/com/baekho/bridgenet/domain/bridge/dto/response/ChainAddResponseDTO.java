@@ -1,11 +1,11 @@
-package com.baekho.bridgenet.domain.bridge.dto;
+package com.baekho.bridgenet.domain.bridge.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ChainUpdateResponseDTO {
+public class ChainAddResponseDTO {
     private Long chainId;
     private String chainName;
     private String smartContractAddress;

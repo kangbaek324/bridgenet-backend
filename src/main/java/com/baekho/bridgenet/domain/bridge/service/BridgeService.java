@@ -1,10 +1,10 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.bridge.dto.BridgeHistoryResponseDTO;
-import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.ExchangeApproveResponseDTO;
-import com.baekho.bridgenet.domain.bridge.dto.RequestOptionSetRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.ExchangeApproveResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
@@ -77,7 +77,7 @@ public class BridgeService {
         };
         Pageable pageable= PageRequest.of(page, size, sort);
 
-        if (chainId == null && direction != null) {
+        if (chainId == null && !direction.isEmpty()) {
             throw new IllegalArgumentException("chainId만 존재하거나 chainId, direction 두가지가 동시에 존재해야합니다");
         }
 
