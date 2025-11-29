@@ -18,23 +18,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.EventEncoder;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.response.EthLog;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.StaticEIP1559GasProvider;
 
+import java.io.IOException;
 import java.math.BigInteger;
-import java.net.ConnectException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Configuration
 @RequiredArgsConstructor
@@ -45,9 +46,10 @@ public class BlockchainConfig {
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final Map<Long, Bridge> bridgeMap = new HashMap<>();
-    private final Map<Long, Web3j> wsWeb3jMap = new HashMap<>();
     private final Map<Long, Web3j> httpWeb3jMap = new HashMap<>();
     private final Credentials credentials;
+
+    private boolean isRecover = true;
 
     @Bean
     public Map<Long, Bridge> bridgeMap() {
@@ -55,56 +57,57 @@ public class BlockchainConfig {
     }
 
     @Bean
-    public Map<Long, Web3j> wsWeb3jMap() { return wsWeb3jMap; }
-
-    @Bean
     public Map<Long, Web3j> httpWeb3jMap() { return httpWeb3jMap; }
 
     @PostConstruct
-    public void init() {
+    public void init() throws IOException {
         List<Chains> chains = chainsRepository.findAll();
 
+        // Bridge 컨트랙트 인스턴스 Map 에 추가
         for (Chains chain : chains) {
             Bridge bridge = createBridgeObject(chain);
             bridgeMap.put(chain.getChainId(), bridge);
+        }
 
-            setWebSocket(bridge, chain);
+        // 누락 이벤트 복구 및 이벤트 리스너 등록
+        for (Chains chain : chains) {
+            Bridge bridge = bridgeMap.get(chain.getChainId());
+            Long chainId = chain.getChainId();
+            Web3j httpWeb3 = httpWeb3jMap.get(chainId);
+            BigInteger nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
+
+            subscribeToContractEvents(bridge, chain, nowBlockNumber);
+
+            try {
+                recoverEvent(httpWeb3, chain, bridge, nowBlockNumber);
+
+                isRecover = false;
+            } catch (Exception e) {
+                log.error("Recover Event Error: {}", e.getMessage(), e);
+            }
         }
     }
 
-    private void setWebSocket(Bridge bridge, Chains chain) {
-        try {
-            WebSocketService ws = new WebSocketService(
-                    chain.getWsRpc(),
-                    true
-            );
+    private void subscribeToContractEvents(Bridge bridge, Chains chain, BigInteger nowBlockNumber) {
+        Queue<Bridge.RequestedEventResponse> queue = new ArrayDeque<>();
 
-            ws.connect();
-
-            Web3j web3j = Web3j.build(ws);
-            wsWeb3jMap.put(chain.getChainId(), web3j);
-
-            subscribeToContractEvents(bridge, chain);
-
-            log.info("WebSocket 연결 성공 - Chain: {}", chain.getChainName());
-        } catch (ConnectException e) {
-            log.error("WebSocket Connect Error: {}", e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("Error: {}", e.getMessage(), e);
-        }
-    }
-
-    private void subscribeToContractEvents(Bridge bridge, Chains chain) {
         bridge.requestedEventFlowable(
-                DefaultBlockParameterName.LATEST,
+                DefaultBlockParameter.valueOf(nowBlockNumber.add(BigInteger.valueOf(1))),
                 DefaultBlockParameterName.LATEST
         ).subscribe(
                 event -> {
-                    log.info("RequestEvent: Request ID: {}", event.request.id);
-                    try {
-                        this.saveRequest(event);
-                    } catch (Exception e) {
-                        log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e.getMessage(), e);
+                    queue.offer(event);
+                    if (!isRecover) {
+                        while (!queue.isEmpty()) {
+                            event = queue.poll();
+                            log.info("RequestEvent: Request ID: {}", event.request.id);
+                            try {
+                                this.saveRequest(event);
+                            }
+                            catch (Exception e) {
+                                log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e.getMessage(), e);
+                            }
+                        }
                     }
                 },
                 error -> {
@@ -112,6 +115,59 @@ public class BlockchainConfig {
                             chain.getChainName(), error.getMessage());
                 }
         );
+    }
+
+    /**
+     * * @TODO 등록시 블록체인에서 이미 처리된 요청인지 확인하는 로직 추가 필요
+     * * 나중에 DB 날아갔을때 recover 함수를 실행시키면 미처리 요청으로 들어가기 때문
+     **/
+    private void recoverEvent(Web3j httpWeb3, Chains chain, Bridge bridge, BigInteger nowBlockNumber) throws IOException, InterruptedException {
+        BigInteger lastBlockNumber = chain.getLastBlockNumber();
+
+        BigInteger startBlockNumber = lastBlockNumber.add(BigInteger.valueOf(1));
+        BigInteger finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(1000));
+
+        log.info("---- Start Recover Requested Event ChainId: {} ---", chain.getChainId());
+
+        boolean isFinish = false;
+        while (true) {
+            if (finishBlockNumber.compareTo(nowBlockNumber) > 0) {
+                finishBlockNumber = nowBlockNumber;
+                isFinish = true;
+            }
+
+            EthFilter filter = new EthFilter(
+                    DefaultBlockParameter.valueOf(startBlockNumber),
+                    DefaultBlockParameter.valueOf(finishBlockNumber),
+                    bridge.getContractAddress()
+            );
+
+            filter.addSingleTopic(EventEncoder.encode(Bridge.REQUESTED_EVENT));
+            EthLog ethLogs = httpWeb3.ethGetLogs(filter).send();
+
+            for (EthLog.LogResult logResult : ethLogs.getLogs()) {
+                Log bcLog = (Log) logResult.get();
+                Bridge.RequestedEventResponse e = Bridge.getRequestedEventFromLog(bcLog);
+
+                saveRequest(e);
+            }
+
+            if (isFinish) {
+                break;
+            }
+            else {
+                startBlockNumber = finishBlockNumber.add(BigInteger.valueOf(1));
+                finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(1000));
+
+                // RPC 429 (To many Request) 해결
+                Thread.sleep(600);
+            }
+        }
+
+        chain.setLastBlockNumber(finishBlockNumber);
+        chainsRepository.save(chain);
+
+        log.info("---- Success Recover Requested Event ----");
     }
 
     public Bridge createBridgeObject(Chains chain) {
@@ -202,6 +258,7 @@ public class BlockchainConfig {
             exchangeRequestRepository.save(build.build());
 
             chain.setLastBlockNumber(res.log.getBlockNumber());
+            chainsRepository.save(chain);
 
             log.info("Save RequestEvent Success: Request ID: {}", request.id);
         }
