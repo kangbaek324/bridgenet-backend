@@ -10,7 +10,12 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "exchange_request")
+@Table(
+    name = "exchange_request",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"from_chain_id", "id_in_smart_contract"})
+    }
+)
 @Builder
 @Getter
 @Setter

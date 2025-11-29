@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button onclick="registerWithMetaMask()">가입</button>
+    <button onclick="loginWithMetaMask()">로그인</button>
+    <script>
+        // 1. 로그인/서명 버튼 이벤트
+        async function registerWithMetaMask() {
+            if (!window.ethereum) {
+                alert("메타마스크 설치 필요");
+                return;
+            }
+
+            // 2. 계정 요청
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const address = accounts[0];
+
+            console.log(address);
+
+            try {
+                // 3. 서버에서 nonce 요청
+                const nonceResponse = await fetch(`http://127.0.0.1:8081/api/auth/nonce`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        address: address
+                    }),
+                    headers: {
+                        "Content-Type": "application/json" // 필수
+                    },
+                });
+                if (!nonceResponse.ok) throw new Error("Failed to get nonce");
+                const data = await nonceResponse.json();
+                const nonce = data.data.nonce;
+
+                // 4. 메시지 생성 (nonce 포함)
+                const message = "Welcome to Bridgenet !\n\nRegister With " + nonce;
+
+                // 5. 메타마스크로 서명 요청
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, address],
+                });
+
+                console.log("서명 완료:", signature);
+
+                // // 6. 서버에 주소, 메시지, 서명 전송
+                const verifyResponse = await fetch(`http://127.0.0.1:8081/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        address,
+                        username: "baekho1",
+                        signatureData: signature
+                    })
+                });
+            } catch (err) {
+                console.error(err);
+                alert("서명 중 오류 발생");
+            }
+        }
+
+        async function loginWithMetaMask() {
+            if (!window.ethereum) {
+                alert("메타마스크 설치 필요");
+                return;
+            }
+
+            // 2. 계정 요청
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const address = accounts[0];
+
+            console.log(address);
+
+            try {
+                // 3. 서버에서 nonce 요청
+                const nonceResponse = await fetch(`http://127.0.0.1:8081/api/auth/nonce`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        address: address
+                    }),
+                    headers: {
+                        "Content-Type": "application/json" // 필수
+                    },
+                });
+                if (!nonceResponse.ok) throw new Error("Failed to get nonce");
+                const data = await nonceResponse.json();
+                const nonce = data.data.nonce;
+
+                // 4. 메시지 생성 (nonce 포함)
+                const message = "Welcome to Bridgenet !\n\nLogin With " + nonce;
+
+                // 5. 메타마스크로 서명 요청
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, address],
+                });
+
+                console.log("서명 완료:", signature);
+
+                // // 6. 서버에 주소, 메시지, 서명 전송
+                const verifyResponse = await fetch(`http://127.0.0.1:8081/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: "baekho1",
+                        signatureData: signature
+                    }),
+                    credentials: 'include' // 이거 꼭 추가해야 쿠키 받아옴
+                });
+            } catch (err) {
+                console.error(err);
+                alert("서명 중 오류 발생");
+            }
+        }
+    </script>
+</body>
+</html>
