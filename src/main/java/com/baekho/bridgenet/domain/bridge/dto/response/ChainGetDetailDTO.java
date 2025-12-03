@@ -10,4 +10,5 @@ public class ChainGetDetailDTO {
     private String chainName;
     private String smartContractAddress;
     private Long smartContractValue;
+    private String unit;
 }

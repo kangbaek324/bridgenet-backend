@@ -3,10 +3,11 @@ package com.baekho.bridgenet.domain.bridge.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @Getter
 @AllArgsConstructor
 public class ContractBalanceGetResponseDTO {
-    private BigDecimal balance;
+    private BigInteger balance;
+    private String unit;
 }

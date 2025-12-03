@@ -11,6 +11,7 @@ public enum AuthErrorCode implements ErrorCode {
     USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 username 입니다."),
     ADDRESS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 유저입니다."),
     UNKNOWN_USER(HttpStatus.UNAUTHORIZED, "존재 하지 않는 유저입니다."),
+    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "존재 하지 않는 유저입니다."),
     INCORRECT_USERINFO(HttpStatus.UNAUTHORIZED, "유저 정보가 일치 하지 않습니다."),
 
     REFRESH_TOKEN_ID_IS_NULL(HttpStatus.BAD_REQUEST, "refreshTokenID가 비었습니다."),

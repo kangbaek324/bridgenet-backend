@@ -93,7 +93,7 @@ public class BridgeController {
             @PathVariable Long userId
     ) {
         Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USER));
+                .orElseThrow(() -> new AuthException(AuthErrorCode.NOT_FOUND_USER));
 
         List<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(user, status);
 

@@ -29,6 +29,9 @@ public class Chains {
     @Column(name = "smart_contract_value", nullable = false)
     private Long smartContractValue;
 
+    @Column(name = "unit")
+    private String unit;
+
     @Column(name = "http_rpc", nullable = false)
     private String httpRpc;
 

@@ -13,8 +13,10 @@ public class ExchangeApproveResponseDTO {
     private Long id;
     private Long fromChainId;
     private BigInteger fromValue;
+    private String fromUnit;
     private Long toChainId;
     private BigInteger toValue;
+    private String toUnit;
     private RequestStatus approveStatus;
     private String transactionHash;
     private LocalDateTime approvedAt;

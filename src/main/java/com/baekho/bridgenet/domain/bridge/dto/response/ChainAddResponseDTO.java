@@ -10,6 +10,7 @@ public class ChainAddResponseDTO {
     private String chainName;
     private String smartContractAddress;
     private Long smartContractValue;
+    private String unit;
     private String httpRpc;
     private String wsRpc;
 }

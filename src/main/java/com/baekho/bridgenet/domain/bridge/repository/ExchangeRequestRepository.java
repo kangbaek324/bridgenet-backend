@@ -17,7 +17,7 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     List<ExchangeRequest> findAllByApproveStatus(RequestStatus status);
 
     @Query("""
-    SELECT e.toChain.chainId, e.toChain.chainName, SUM(e.toValue)
+    SELECT e.toChain.chainId, e.toChain.chainName, SUM(e.toValue), e.toChain.unit
     FROM ExchangeRequest e
     WHERE e.approveStatus = :status
     GROUP BY e.toChain.chainId, e.toChain.chainName
@@ -26,7 +26,7 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     List<List<Object>> findTotalToValueByChain(@Param("status") RequestStatus status);
 
     @Query("""
-    SELECT e.fromChain.chainId, e.fromChain.chainName, SUM(e.fromValue)
+    SELECT e.fromChain.chainId, e.fromChain.chainName, SUM(e.fromValue), e.fromChain.unit
     FROM ExchangeRequest e
     WHERE e.approveStatus = :status
     GROUP BY e.fromChain.chainId, e.fromChain.chainName
