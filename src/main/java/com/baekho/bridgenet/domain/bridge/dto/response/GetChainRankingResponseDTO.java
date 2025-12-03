@@ -12,4 +12,5 @@ public class GetChainRankingResponseDTO {
     private Long chainId;
     private String chainName;
     private BigInteger value;
+    private String unit;
 }

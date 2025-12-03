@@ -4,7 +4,6 @@ import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.request.WhiteListRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
@@ -15,20 +14,17 @@ import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
-import com.baekho.bridgenet.global.config.BlockchainConfig;
 import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Convert;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +56,8 @@ public class ChainService {
                             chain.getChainId(),
                             chain.getChainName(),
                             chain.getSmartContractAddress(),
-                            chain.getSmartContractValue()
+                            chain.getSmartContractValue(),
+                            chain.getUnit()
                     )
             );
         }
@@ -78,6 +75,7 @@ public class ChainService {
                 .chainName(dto.getChainName())
                 .smartContractAddress(dto.getSmartContractAddress())
                 .smartContractValue(dto.getSmartContractValue())
+                .unit(dto.getUnit())
                 .httpRpc(dto.getHttpRpc())
                 .wsRpc(dto.getWsRpc())
                 .lastBlockNumber(BigInteger.valueOf(0))
@@ -93,6 +91,7 @@ public class ChainService {
                 chain.getChainName(),
                 chain.getSmartContractAddress(),
                 chain.getSmartContractValue(),
+                chain.getUnit(),
                 chain.getHttpRpc(),
                 chain.getWsRpc()
         );
@@ -106,6 +105,7 @@ public class ChainService {
         chain.setChainName(dto.getChainName());
         chain.setSmartContractAddress(dto.getSmartContractAddress());
         chain.setSmartContractValue(dto.getSmartContractValue());
+        chain.setUnit(dto.getUnit());
         chain.setHttpRpc(dto.getHttpRpc());
         chain.setWsRpc(dto.getWsRpc());
 
@@ -119,6 +119,7 @@ public class ChainService {
                 chain.getChainName(),
                 chain.getSmartContractAddress(),
                 chain.getSmartContractValue(),
+                chain.getUnit(),
                 chain.getHttpRpc(),
                 chain.getWsRpc()
         );
@@ -153,7 +154,8 @@ public class ChainService {
         }
 
         return new ContractBalanceGetResponseDTO(
-                Convert.fromWei(new BigDecimal(balance.getBalance()), Convert.Unit.ETHER)
+                balance.getBalance(),
+                chain.getUnit()
         );
     }
 
@@ -173,7 +175,8 @@ public class ChainService {
                         chainRankingIndex,
                         (Long) chain.get(0),
                         (String) chain.get(1),
-                        (BigInteger) chain.get(2)
+                        (BigInteger) chain.get(2),
+                        (String) chain.get(3)
                 )
             );
 

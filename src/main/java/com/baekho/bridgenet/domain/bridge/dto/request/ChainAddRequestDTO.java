@@ -23,6 +23,10 @@ public class ChainAddRequestDTO {
     @NotNull
     private Long smartContractValue;
 
+    @Schema(description = "네이티브 토큰 단위", example = "ETH")
+    @NotBlank
+    private String unit;
+
     @Schema(description = "체인 Http RPC", example = "http://..")
     @NotBlank
     private String httpRpc;

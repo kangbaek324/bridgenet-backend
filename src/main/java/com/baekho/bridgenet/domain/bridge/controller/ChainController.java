@@ -4,7 +4,6 @@ import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.request.WhiteListRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
 import com.baekho.bridgenet.domain.bridge.service.ChainService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
@@ -59,11 +58,14 @@ public class ChainController {
     @Operation(summary = "체인 삭제", description = "체인을 삭제합니다.")
     @DeleteMapping("{chainId}")
     @PreAuthorize("@authService.isAdmin(principal)")
-    public void removeChain(
+    public ResponseEntity<SuccessResponse<Void>> removeChain(
             @PathVariable Long chainId
     ) {
         chainService.removeChain(chainId);
-        return;
+
+        return ResponseEntity
+                .status(204)
+                .body(new SuccessResponse<>("", null));
     }
 
     @Operation(summary = "체인 랭킹 조회", description = "자금 유입/유출순으로 랭킹을 조회합니다.")
