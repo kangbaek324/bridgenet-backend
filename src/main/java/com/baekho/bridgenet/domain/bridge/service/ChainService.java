@@ -177,6 +177,9 @@ public class ChainService {
             throw new BlockchainException(BlockchainErrorCode.ERROR);
         }
 
+        chain.setSmartContractValue(balance.getBalance());
+        chainsRepository.save(chain);
+
         return new ContractBalanceGetResponseDTO(
                 balance.getBalance(),
                 chain.getUnit()

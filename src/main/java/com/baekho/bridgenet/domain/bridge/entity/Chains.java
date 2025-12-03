@@ -27,7 +27,7 @@ public class Chains {
     private String smartContractAddress;
 
     @Column(name = "smart_contract_value", nullable = false)
-    private Long smartContractValue;
+    private BigInteger smartContractValue;
 
     @Column(name = "unit")
     private String unit;
