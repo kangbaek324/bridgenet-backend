@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigInteger;
+
 @Getter
 @AllArgsConstructor
 public class ChainUpdateRequestDTO {
@@ -17,9 +19,9 @@ public class ChainUpdateRequestDTO {
     @NotBlank
     private String smartContractAddress;
 
-    @Schema(description = "현재 스마트컨트랙트의 양", example = "0.5ETH -> 0.5")
+    @Schema(description = "현재 스마트컨트랙트의 코인 양", example = "0.5ETH -> 0.5")
     @NotNull
-    private Long smartContractValue;
+    private BigInteger smartContractValue;
 
     @Schema(description = "네이티브 토큰 단위", example = "ETH")
     @NotBlank
