@@ -1,5 +1,7 @@
 # BridgeNet (CrossChain Bridge)
 
+![제목 없는 비디오 - Clipchamp로 제작](https://github.com/user-attachments/assets/37296308-a783-439c-8f8e-8de7778a6e21)
+
 개발기간: 2025-10-27 ~ 
 
 ---
@@ -37,4 +39,6 @@
 - Frameworks: Hardhat
 - Library: OpenZeppelin
 
-SmartContract Repository <a href="https://github.com/kangbaek324/bridgenet-smartcontract">here</a>
+
+SmartContract Repository <a href="https://github.com/kangbaek324/bridgenet-smartcontract">here</a> </br>
+FrontEnd Repository <a href="https://github.com/kangbaek324/bridgenet-frontend">here</a>
