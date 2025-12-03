@@ -4,6 +4,8 @@
 
 개발기간: 2025-10-27 ~ 
 
+팀원: 1인 개발
+
 ---
 
 ## 💫 Features
@@ -39,6 +41,7 @@
 - Frameworks: Hardhat
 - Library: OpenZeppelin
 
+## 📁 Repository
 
 SmartContract Repository <a href="https://github.com/kangbaek324/bridgenet-smartcontract">here</a> </br>
 FrontEnd Repository <a href="https://github.com/kangbaek324/bridgenet-frontend">here</a>
