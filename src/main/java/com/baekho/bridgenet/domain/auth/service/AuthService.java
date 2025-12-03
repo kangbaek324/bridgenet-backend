@@ -178,12 +178,12 @@ public class AuthService {
 
         refreshTokenRepository.save(refreshTokenDB);
 
-        ResponseCookie cookie = ResponseCookie.from("refreshTokenId", user.getId().toString())
+        ResponseCookie cookie = ResponseCookie.from("refreshTokenId", refreshTokenDB.getId().toString())
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(Duration.ofDays(30))
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 

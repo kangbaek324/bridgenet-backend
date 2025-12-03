@@ -100,12 +100,12 @@ public class ChainController {
     @Operation(summary = "컨트랙트 화이트리스트 등록", description = "자본을 옮길 컨트랙트에 화이트리스트 등록 요청을 보냅니다.")
     @PostMapping("{chainId}/contract/whitelist")
     public ResponseEntity<SuccessResponse<WhiteListResponseDTO>> setWhiteList(
-            @Valid @RequestBody WhiteListRequestDTO dto
+            @PathVariable Long chainId
     ) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Users user = (Users) authentication.getPrincipal();
 
-        WhiteListResponseDTO result = chainService.setWhiteList(dto, user);
+        WhiteListResponseDTO result = chainService.setWhiteList(chainId, user);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }

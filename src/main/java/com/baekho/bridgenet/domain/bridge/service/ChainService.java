@@ -9,6 +9,7 @@ import com.baekho.bridgenet.domain.bridge.dto.response.*;
 import com.baekho.bridgenet.domain.bridge.entity.Chains;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
+import com.baekho.bridgenet.global.blockchain.BlockchainService;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
@@ -45,8 +46,7 @@ public class ChainService {
      */
     private final ChainsRepository chainsRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
-    private final BlockchainConfig blockchainConfig;
-    private final Credentials credentials;
+    private final BlockchainService blockchainService;
     private final Map<Long, Bridge> bridgeMap;
     private final Map<Long, Web3j> httpWeb3jMap;
 
@@ -85,7 +85,7 @@ public class ChainService {
 
         chainsRepository.save(chain);
 
-        Bridge bridge = blockchainConfig.createBridgeObject(chain);
+        Bridge bridge = blockchainService.createBridgeObject(chain);
         bridgeMap.put(chain.getChainId(), bridge);
 
         return new ChainAddResponseDTO(
@@ -111,7 +111,7 @@ public class ChainService {
 
         chainsRepository.save(chain);
 
-        Bridge bridge = blockchainConfig.createBridgeObject(chain);
+        Bridge bridge = blockchainService.createBridgeObject(chain);
         bridgeMap.put(chain.getChainId(), bridge);
 
         return new ChainUpdateResponseDTO(
@@ -130,7 +130,7 @@ public class ChainService {
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         chainsRepository.delete(chain);
 
-        blockchainConfig.createBridgeObject(chain);
+        blockchainService.createBridgeObject(chain);
         bridgeMap.remove(chain.getChainId());
     }
 
@@ -199,11 +199,18 @@ public class ChainService {
         }
     }
 
-    public WhiteListResponseDTO setWhiteList(WhiteListRequestDTO dto, Users user) throws Exception {
-        Chains chain = chainsRepository.findByChainId(dto.getChainId())
+    public WhiteListResponseDTO setWhiteList(Long chainId, Users user) {
+        Chains chain = chainsRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
-        TransactionReceipt receipt = bridgeMap.get(chain.getChainId()).setWhiteList(user.getAddress(), true).send();
+        TransactionReceipt receipt;
+
+        try {
+            receipt = bridgeMap.get(chain.getChainId()).setWhiteList(user.getAddress(), true).send();
+        } catch (Exception e) {
+            log.error("Set WhiteList Error: {}", e.getMessage(), e);
+            throw new BlockchainException(BlockchainErrorCode.ERROR);
+        }
 
         return new WhiteListResponseDTO(receipt.getTransactionHash());
     }
