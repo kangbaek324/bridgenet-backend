@@ -15,6 +15,7 @@ import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.contract.bridge.Bridge;
+import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ public class ChainService {
     private final BlockchainService blockchainService;
     private final Map<Long, Bridge> bridgeMap;
     private final Map<Long, Web3j> httpWeb3jMap;
+    private final Map<Long, Disposable> subMap;
 
     public ChainListGetResponseDTO getChainList() {
         List<Chains> chains = chainsRepository.findAll();
@@ -86,6 +88,8 @@ public class ChainService {
         Bridge bridge = blockchainService.createBridgeObject(chain);
         bridgeMap.put(chain.getChainId(), bridge);
 
+        blockchainService.subscribeToContractEvents(bridge, chain, dto.getContractCreatedBlockNumber());
+
         return new ChainAddResponseDTO(
                 chain.getChainId(),
                 chain.getChainName(),
@@ -102,6 +106,9 @@ public class ChainService {
         Chains chain = chainsRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
+        String beforeContractAddress = chain.getSmartContractAddress();
+        String beforeHttpRpc = chain.getHttpRpc();
+
         chain.setChainName(dto.getChainName());
         chain.setSmartContractAddress(dto.getSmartContractAddress());
         chain.setSmartContractValue(dto.getSmartContractValue());
@@ -113,6 +120,19 @@ public class ChainService {
 
         Bridge bridge = blockchainService.createBridgeObject(chain);
         bridgeMap.put(chain.getChainId(), bridge);
+
+        // 스마트 컨트랙트가 또는 RPC 변경시
+        if (
+            !beforeContractAddress.equals(dto.getSmartContractAddress()) ||
+            !beforeHttpRpc.equals(dto.getHttpRpc())
+        ) {
+            // 기존의 구독중이던 이벤트 끊기
+            Disposable sub = subMap.get(chain.getChainId());
+            sub.dispose();
+
+            // 새 구독 등록
+            blockchainService.subscribeToContractEvents(bridge, chain, chain.getLastBlockNumber());
+        }
 
         return new ChainUpdateResponseDTO(
                 chain.getChainId(),
@@ -133,6 +153,10 @@ public class ChainService {
 
         blockchainService.createBridgeObject(chain);
         bridgeMap.remove(chain.getChainId());
+
+        // 구독 취소
+        Disposable sub = subMap.get(chain.getChainId());
+        sub.dispose();
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {

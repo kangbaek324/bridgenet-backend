@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
+import java.math.BigInteger;
+
 @Getter
 public class ChainAddRequestDTO {
     @Schema(description = "체인 이름", example = "ethereum")
@@ -34,4 +36,8 @@ public class ChainAddRequestDTO {
     @Schema(description = "체인 Websocket RPC", example = "wss://..")
     @NotBlank
     private String wsRpc;
+
+    @Schema(description = "컨트랙트가 생성된 블록 번호", example = "103221")
+    @NotNull
+    private BigInteger contractCreatedBlockNumber;
 }

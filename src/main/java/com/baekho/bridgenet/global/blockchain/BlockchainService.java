@@ -12,6 +12,7 @@ import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.contract.bridge.Bridge;
+import io.reactivex.disposables.Disposable;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,6 @@ import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.StaticEIP1559GasProvider;
@@ -47,6 +47,7 @@ public class BlockchainService {
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final Map<Long, Bridge> bridgeMap;
     private final Map<Long, Web3j> httpWeb3jMap;
+    private final Map<Long, Disposable> subMap;
 
     private final Credentials credentials;
 
@@ -81,10 +82,10 @@ public class BlockchainService {
         }
     }
 
-    private void subscribeToContractEvents(Bridge bridge, Chains chain, BigInteger nowBlockNumber) {
+    public void subscribeToContractEvents(Bridge bridge, Chains chain, BigInteger nowBlockNumber) {
         Queue<Bridge.RequestedEventResponse> queue = new ArrayDeque<>();
 
-        bridge.requestedEventFlowable(
+        Disposable sub = bridge.requestedEventFlowable(
                 DefaultBlockParameter.valueOf(nowBlockNumber.add(BigInteger.valueOf(1))),
                 DefaultBlockParameterName.LATEST
         ).subscribe(
@@ -96,8 +97,7 @@ public class BlockchainService {
                             log.info("RequestEvent: Request ID: {}", event.request.id);
                             try {
                                 this.saveRequest(event);
-                            }
-                            catch (Exception e) {
+                            } catch (Exception e) {
                                 log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e.getMessage(), e);
                             }
                         }
@@ -108,6 +108,8 @@ public class BlockchainService {
                             chain.getChainName(), error.getMessage());
                 }
         );
+
+        subMap.put(chain.getChainId(), sub);
     }
 
     /**
