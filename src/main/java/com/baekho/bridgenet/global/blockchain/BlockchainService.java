@@ -96,7 +96,7 @@ public class BlockchainService {
                             event = queue.poll();
                             log.info("RequestEvent: Request ID: {}", event.request.id);
                             try {
-                                this.saveRequest(event);
+                                this.saveRequest(event, event.log.getTransactionHash());
                             } catch (Exception e) {
                                 log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e.getMessage(), e);
                             }
@@ -144,7 +144,7 @@ public class BlockchainService {
                 Log bcLog = (Log) logResult.get();
                 Bridge.RequestedEventResponse e = Bridge.getRequestedEventFromLog(bcLog);
 
-                saveRequest(e);
+                saveRequest(e, e.log.getTransactionHash());
             }
 
             if (isFinish) {
@@ -167,7 +167,7 @@ public class BlockchainService {
 
 
     @Transactional
-    private void saveRequest(Bridge.RequestedEventResponse res) {
+    private void saveRequest(Bridge.RequestedEventResponse res, String fromTransactionHash) {
         Bridge.RequestInfo request = res.request;
 
         Optional<Users> userOpt = userRepository.findByAddress(res.requestedBy);
@@ -219,13 +219,15 @@ public class BlockchainService {
                 }
                 else {
                     build.approveStatus(RequestStatus.APPROVE);
-                    build.transactionHash(transactionHash);
+                    build.toTransactionHash(transactionHash);
                     build.approvedAt(LocalDateTime.now());
                 }
             }
             else {
                 build.approveStatus(RequestStatus.PENDING);
             }
+
+            build.fromTransactionHash(fromTransactionHash);
 
             exchangeRequestRepository.save(build.build());
 

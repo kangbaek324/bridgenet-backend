@@ -18,7 +18,8 @@ public class BridgeHistoryResponseDTO {
     private BigInteger toValue;
     private String toUnit;
     private RequestStatus status;
-    private String transactionHash;
+    private String toTransactionHash;
+    private String fromTransactionHash;
     private LocalDateTime exchangedAt;
     private LocalDateTime createdAt;
 }

@@ -114,7 +114,8 @@ public class BridgeService {
                     exchangeRequest.getToValue(),
                     exchangeRequest.getToChain().getUnit(),
                     exchangeRequest.getApproveStatus(),
-                    exchangeRequest.getTransactionHash(),
+                    exchangeRequest.getToTransactionHash(),
+                    exchangeRequest.getFromTransactionHash(),
                     exchangeRequest.getApprovedAt(),
                     exchangeRequest.getCreatedAt()
             );
@@ -154,7 +155,8 @@ public class BridgeService {
                         exchangeRequest.getToValue(),
                         exchangeRequest.getToChain().getUnit(),
                         exchangeRequest.getApproveStatus(),
-                        exchangeRequest.getTransactionHash(),
+                        exchangeRequest.getToTransactionHash(),
+                        exchangeRequest.getFromTransactionHash(),
                         exchangeRequest.getApprovedAt(),
                         exchangeRequest.getCreatedAt()
                 )
@@ -197,7 +199,7 @@ public class BridgeService {
         }
 
         transactionHash = recepit.getTransactionHash();
-        request.setTransactionHash(transactionHash);
+        request.setToTransactionHash(transactionHash);
 
         return new ExchangeApproveResponseDTO(
                 request.getId(),
