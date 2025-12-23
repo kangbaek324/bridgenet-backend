@@ -62,13 +62,13 @@ public class BridgeController {
     public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getExchangeHistory(
             @RequestParam(name = "sort", defaultValue = "latest") String sortType,
             @RequestParam(name = "size", defaultValue = "10") int size,
-            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "chainId", required = false) Long chainId,
             @RequestParam(name = "direction", required = false) String direction,
             @RequestParam(name = "status", required = false) String status
     ) {
         if (direction == null) direction = "";
-        Page<BridgeHistoryResponseDTO> result = bridgeService.getExchangeAllHistory(sortType, size, page, chainId, direction, status);
+        Page<BridgeHistoryResponseDTO> result = bridgeService.getExchangeAllHistory(sortType, size, page - 1, chainId, direction, status);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }

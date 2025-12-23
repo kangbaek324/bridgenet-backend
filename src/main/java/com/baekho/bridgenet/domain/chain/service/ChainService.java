@@ -1,20 +1,20 @@
-package com.baekho.bridgenet.domain.bridge.service;
+package com.baekho.bridgenet.domain.chain.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
-import com.baekho.bridgenet.domain.bridge.entity.Chains;
-import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
+import com.baekho.bridgenet.domain.chain.entity.Chain;
+import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.blockchain.BlockchainService;
+import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
-import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,38 +41,39 @@ public class ChainService {
      *  * @TODO
      *  * 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
      */
-    private final ChainsRepository chainsRepository;
+    private final ChainRepository chainRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final BlockchainService blockchainService;
     private final Map<Long, Bridge> bridgeMap;
     private final Map<Long, Web3j> httpWeb3jMap;
     private final Map<Long, Disposable> subMap;
 
-    public ChainListGetResponseDTO getChainList() {
-        List<Chains> chains = chainsRepository.findAll();
-        List<ChainGetDetailDTO> chainGetDetailDTOS = new ArrayList<>();
+    public ChainListResponseDTO getChainList() {
+        List<Chain> chains = chainRepository.findAll();
+        List<ChainDetailDTO> chainGetDetailDTOS = new ArrayList<>();
 
-        for(Chains chain : chains) {
+        for(Chain chain : chains) {
             chainGetDetailDTOS.add(
-                    new ChainGetDetailDTO(
-                            chain.getChainId(),
-                            chain.getChainName(),
-                            chain.getSmartContractAddress(),
-                            chain.getSmartContractValue(),
-                            chain.getUnit()
-                    )
+                    ChainDetailDTO.
+                            builder()
+                            .chainId(chain.getChainId())
+                            .chainName(chain.getChainName())
+                            .smartContractAddress(chain.getSmartContractAddress())
+                            .smartContractValue(chain.getSmartContractValue())
+                            .unit(chain.getUnit())
+                            .build()
             );
         }
 
-        return new ChainListGetResponseDTO(chainGetDetailDTOS);
+        return new ChainListResponseDTO(chainGetDetailDTOS);
     }
 
     @Transactional
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
-        Optional<Chains> existing = chainsRepository.findByChainId(dto.getChainId());
+        Optional<Chain> existing = chainRepository.findByChainId(dto.getChainId());
         if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_ID);
 
-        Chains chain = Chains.builder()
+        Chain chain = Chain.builder()
                 .chainId(dto.getChainId())
                 .chainName(dto.getChainName())
                 .smartContractAddress(dto.getSmartContractAddress())
@@ -83,27 +84,28 @@ public class ChainService {
                 .lastBlockNumber(BigInteger.valueOf(0))
                 .build();
 
-        chainsRepository.save(chain);
+        chainRepository.save(chain);
 
         Bridge bridge = blockchainService.createBridgeObject(chain);
         bridgeMap.put(chain.getChainId(), bridge);
 
         blockchainService.subscribeToContractEvents(bridge, chain, dto.getContractCreatedBlockNumber());
 
-        return new ChainAddResponseDTO(
-                chain.getChainId(),
-                chain.getChainName(),
-                chain.getSmartContractAddress(),
-                chain.getSmartContractValue(),
-                chain.getUnit(),
-                chain.getHttpRpc(),
-                chain.getWsRpc()
-        );
+        return ChainAddResponseDTO
+                .builder()
+                .chainId(chain.getChainId())
+                .chainName(chain.getChainName())
+                .smartContractAddress(chain.getSmartContractAddress())
+                .smartContractValue(chain.getSmartContractValue())
+                .unit(chain.getUnit())
+                .httpRpc(chain.getHttpRpc())
+                .wsRpc(chain.getWsRpc())
+                .build();
     }
 
     @Transactional
     public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) {
-        Chains chain = chainsRepository.findById(chainId)
+        Chain chain = chainRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         String beforeContractAddress = chain.getSmartContractAddress();
@@ -116,7 +118,7 @@ public class ChainService {
         chain.setHttpRpc(dto.getHttpRpc());
         chain.setWsRpc(dto.getWsRpc());
 
-        chainsRepository.save(chain);
+        chainRepository.save(chain);
 
         Bridge bridge = blockchainService.createBridgeObject(chain);
         bridgeMap.put(chain.getChainId(), bridge);
@@ -134,22 +136,22 @@ public class ChainService {
             blockchainService.subscribeToContractEvents(bridge, chain, chain.getLastBlockNumber());
         }
 
-        return new ChainUpdateResponseDTO(
-                chain.getChainId(),
-                chain.getChainName(),
-                chain.getSmartContractAddress(),
-                chain.getSmartContractValue(),
-                chain.getUnit(),
-                chain.getHttpRpc(),
-                chain.getWsRpc()
-        );
+        return ChainUpdateResponseDTO.builder()
+                .chainId(chain.getChainId())
+                .chainName(chain.getChainName())
+                .smartContractAddress(chain.getSmartContractAddress())
+                .smartContractValue(chain.getSmartContractValue())
+                .unit(chain.getUnit())
+                .httpRpc(chain.getHttpRpc())
+                .wsRpc(chain.getWsRpc())
+                .build();
     }
 
     @Transactional
     public void removeChain(Long chainId) {
-        Chains chain = chainsRepository.findById(chainId)
+        Chain chain = chainRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        chainsRepository.delete(chain);
+        chainRepository.delete(chain);
 
         blockchainService.createBridgeObject(chain);
         bridgeMap.remove(chain.getChainId());
@@ -160,7 +162,7 @@ public class ChainService {
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
-        Chains chain = chainsRepository.findById(chainId)
+        Chain chain = chainRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         Web3j web3j = httpWeb3jMap.get(chainId);
@@ -178,7 +180,7 @@ public class ChainService {
         }
 
         chain.setSmartContractValue(balance.getBalance());
-        chainsRepository.save(chain);
+        chainRepository.save(chain);
 
         return new ContractBalanceGetResponseDTO(
                 balance.getBalance(),
@@ -186,25 +188,26 @@ public class ChainService {
         );
     }
 
-    public List<GetChainRankingResponseDTO> getChainRanking(String sort) {
+    public List<ChainRankingResponseDTO> getChainRanking(String sort) {
         List<List<Object>> chainRankingDB = switch (sort) {
             case "in" -> exchangeRequestRepository.findTotalToValueByChain(RequestStatus.APPROVE);
             case "out" -> exchangeRequestRepository.findTotalFromValueByChain(RequestStatus.APPROVE);
             default -> throw new IllegalArgumentException("sort 는 in, out 만 허용합니다.");
         };
 
-        List<GetChainRankingResponseDTO> chainRanking = new ArrayList<>();
+        List<ChainRankingResponseDTO> chainRanking = new ArrayList<>();
         int chainRankingIndex = 1;
 
         for (List<Object> chain : chainRankingDB) {
             chainRanking.add(
-                new GetChainRankingResponseDTO(
-                        chainRankingIndex,
-                        (Long) chain.get(0),
-                        (String) chain.get(1),
-                        (BigInteger) chain.get(2),
-                        (String) chain.get(3)
-                )
+                ChainRankingResponseDTO
+                    .builder()
+                    .ranking(chainRankingIndex)
+                    .chainId((Long) chain.get(0))
+                    .chainName((String) chain.get(1))
+                    .value((BigInteger) chain.get(2))
+                    .unit((String) chain.get(3))
+                    .build()
             );
 
             chainRankingIndex++;
@@ -214,7 +217,7 @@ public class ChainService {
     }
 
     public void addContractBalance(AddContractBalanceRequestDTO dto, Long chainId) {
-        Chains chain = chainsRepository.findByChainId(chainId)
+        Chain chain = chainRepository.findByChainId(chainId)
             .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         // @TODO 체인별 가스 지정 필요
@@ -230,7 +233,7 @@ public class ChainService {
     }
 
     public WhiteListResponseDTO setWhiteList(Long chainId, Users user) {
-        Chains chain = chainsRepository.findByChainId(chainId)
+        Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         TransactionReceipt receipt;

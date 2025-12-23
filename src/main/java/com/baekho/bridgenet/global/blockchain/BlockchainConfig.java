@@ -1,6 +1,6 @@
-package com.baekho.bridgenet.global.config;
+package com.baekho.bridgenet.global.blockchain;
 
-import com.baekho.bridgenet.global.contract.bridge.Bridge;
+import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

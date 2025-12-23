@@ -1,16 +1,16 @@
 package com.baekho.bridgenet.domain.bridge.dto.response;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigInteger;
 
 @Getter
-@AllArgsConstructor
-public class GetChainRankingResponseDTO {
-    private int ranking;
+@Builder
+public class ChainDetailApproveDTO {
     private Long chainId;
     private String chainName;
     private BigInteger value;
     private String unit;
+    private String transactionHash;
 }

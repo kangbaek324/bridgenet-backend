@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.global.contract.bridge;
+package com.baekho.bridgenet.global.blockchain.contract.bridge;
 
 import io.reactivex.Flowable;
 import java.math.BigInteger;

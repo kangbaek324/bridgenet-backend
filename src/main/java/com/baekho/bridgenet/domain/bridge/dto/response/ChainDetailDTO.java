@@ -1,13 +1,13 @@
 package com.baekho.bridgenet.domain.bridge.dto.response;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigInteger;
 
 @Getter
-@AllArgsConstructor
-public class ChainGetDetailDTO {
+@Builder
+public class ChainDetailDTO {
     private Long chainId;
     private String chainName;
     private String smartContractAddress;

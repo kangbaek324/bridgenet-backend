@@ -7,6 +7,6 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ChainListGetResponseDTO {
-    private List<ChainGetDetailDTO> list;
+public class ChainListResponseDTO {
+    private List<ChainDetailDTO> list;
 }

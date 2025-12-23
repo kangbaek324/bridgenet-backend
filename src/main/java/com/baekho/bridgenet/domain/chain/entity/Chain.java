@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.bridge.entity;
+package com.baekho.bridgenet.domain.chain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Chains {
+public class Chain {
     @Id
     @Column(name = "chain_id", nullable = false)
     private Long chainId;
