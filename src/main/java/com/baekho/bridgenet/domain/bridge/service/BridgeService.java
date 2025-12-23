@@ -7,7 +7,7 @@ import com.baekho.bridgenet.domain.bridge.dto.response.ChainDetailApproveDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.ChainDetailBridgeHistoryDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.ExchangeApproveResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
-import com.baekho.bridgenet.domain.bridge.entity.Chains;
+import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
@@ -109,8 +109,8 @@ public class BridgeService {
         Page<ExchangeRequest> exchangeRequestPage = exchangeRequestRepository.findAll(spec, pageable);
 
         return exchangeRequestPage.map(exchangeRequest -> {
-            Chains toChain = exchangeRequest.getToChain();
-            Chains fromChain = exchangeRequest.getFromChain();
+            Chain toChain = exchangeRequest.getToChain();
+            Chain fromChain = exchangeRequest.getFromChain();
 
             ChainDetailBridgeHistoryDTO from = ChainDetailBridgeHistoryDTO
                     .builder()
@@ -165,8 +165,8 @@ public class BridgeService {
         List<BridgeHistoryResponseDTO> result = new ArrayList<>();
 
         for (ExchangeRequest exchangeRequest : DB) {
-            Chains toChain = exchangeRequest.getToChain();
-            Chains fromChain = exchangeRequest.getFromChain();
+            Chain toChain = exchangeRequest.getToChain();
+            Chain fromChain = exchangeRequest.getFromChain();
 
             ChainDetailBridgeHistoryDTO from = ChainDetailBridgeHistoryDTO
                     .builder()
@@ -238,8 +238,8 @@ public class BridgeService {
         request.setToTransactionHash(transactionHash);
 
         // Response
-        Chains toChain = request.getToChain();
-        Chains fromChain = request.getFromChain();
+        Chain toChain = request.getToChain();
+        Chain fromChain = request.getFromChain();
 
         ChainDetailApproveDTO from = ChainDetailApproveDTO
                 .builder()

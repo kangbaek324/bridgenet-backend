@@ -1,11 +1,11 @@
-package com.baekho.bridgenet.domain.bridge.controller;
+package com.baekho.bridgenet.domain.chain.controller;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
-import com.baekho.bridgenet.domain.bridge.service.ChainService;
+import com.baekho.bridgenet.domain.chain.service.ChainService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;

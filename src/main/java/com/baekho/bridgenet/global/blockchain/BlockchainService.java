@@ -2,10 +2,10 @@ package com.baekho.bridgenet.global.blockchain;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
-import com.baekho.bridgenet.domain.bridge.entity.Chains;
+import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
-import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
+import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
@@ -41,7 +41,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class BlockchainService {
-    private final ChainsRepository chainsRepository;
+    private final ChainRepository chainRepository;
     private final UserRepository userRepository;
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
@@ -55,16 +55,16 @@ public class BlockchainService {
 
     @PostConstruct
     public void init() throws IOException {
-        List<Chains> chains = chainsRepository.findAll();
+        List<Chain> chains = chainRepository.findAll();
 
         // Bridge 컨트랙트 인스턴스 Map 에 추가
-        for (Chains chain : chains) {
+        for (Chain chain : chains) {
             Bridge bridge = createBridgeObject(chain);
             bridgeMap.put(chain.getChainId(), bridge);
         }
 
         // 누락 이벤트 복구 및 이벤트 리스너 등록
-        for (Chains chain : chains) {
+        for (Chain chain : chains) {
             Bridge bridge = bridgeMap.get(chain.getChainId());
             Long chainId = chain.getChainId();
             Web3j httpWeb3 = httpWeb3jMap.get(chainId);
@@ -82,7 +82,7 @@ public class BlockchainService {
         }
     }
 
-    public void subscribeToContractEvents(Bridge bridge, Chains chain, BigInteger nowBlockNumber) {
+    public void subscribeToContractEvents(Bridge bridge, Chain chain, BigInteger nowBlockNumber) {
         Queue<Bridge.RequestedEventResponse> queue = new ArrayDeque<>();
 
         Disposable sub = bridge.requestedEventFlowable(
@@ -116,7 +116,7 @@ public class BlockchainService {
      * * @TODO 등록시 블록체인에서 이미 처리된 요청인지 확인하는 로직 추가 필요
      * * 나중에 DB 날아갔을때 recover 함수를 실행시키면 미처리 요청으로 들어가기 때문
      **/
-    private void recoverEvent(Web3j httpWeb3, Chains chain, Bridge bridge, BigInteger nowBlockNumber) throws IOException, InterruptedException {
+    private void recoverEvent(Web3j httpWeb3, Chain chain, Bridge bridge, BigInteger nowBlockNumber) throws IOException, InterruptedException {
         BigInteger lastBlockNumber = chain.getLastBlockNumber();
 
         // 맨처음 복구를 시작한 블록
@@ -168,13 +168,13 @@ public class BlockchainService {
         }
 
         chain.setLastBlockNumber(finishBlockNumber);
-        chainsRepository.save(chain);
+        chainRepository.save(chain);
 
         log.info("---- Success Recover Requested Event ----");
     }
 
     private static void showPercentLog(
-            Chains chain,
+            Chain chain,
             BigInteger recoverStartBlock,
             BigInteger recoverEndBlockNumber,
             BigInteger nowRecoverBlockNumber
@@ -208,15 +208,15 @@ public class BlockchainService {
         Bridge.RequestInfo request = res.request;
 
         Optional<Users> userOpt = userRepository.findByAddress(res.requestedBy);
-        Optional<Chains> chainOpt = chainsRepository.findByChainId(request.fromChainId.longValue());
+        Optional<Chain> chainOpt = chainRepository.findByChainId(request.fromChainId.longValue());
 
         if (userOpt.isPresent() && chainOpt.isPresent()) {
             Users user = userOpt.get();
-            Chains chain = chainOpt.get();
+            Chain chain = chainOpt.get();
 
-            Chains toChain = chainsRepository.findByChainId(request.toChainId.longValue())
+            Chain toChain = chainRepository.findByChainId(request.toChainId.longValue())
                     .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-            Chains fromChain = chainsRepository.findByChainId(request.fromChainId.longValue())
+            Chain fromChain = chainRepository.findByChainId(request.fromChainId.longValue())
                     .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
             ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
@@ -269,7 +269,7 @@ public class BlockchainService {
             exchangeRequestRepository.save(build.build());
 
             chain.setLastBlockNumber(res.log.getBlockNumber());
-            chainsRepository.save(chain);
+            chainRepository.save(chain);
 
             log.info("Save RequestEvent Success: Request ID: {}", request.id);
         }
@@ -281,7 +281,7 @@ public class BlockchainService {
         }
     }
 
-    public Bridge createBridgeObject(Chains chain) {
+    public Bridge createBridgeObject(Chain chain) {
         // @TODO
         // 메서드와 약간 의미가 맞지 않는듯 수정 필요
         Web3j web3j = Web3j.build(new HttpService(chain.getHttpRpc()));

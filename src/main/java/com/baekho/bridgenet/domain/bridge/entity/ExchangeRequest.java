@@ -1,6 +1,7 @@
 package com.baekho.bridgenet.domain.bridge.entity;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,14 +36,14 @@ public class ExchangeRequest {
 
     @ManyToOne()
     @JoinColumn(name = "from_chain_id", nullable = false)
-    private Chains fromChain;
+    private Chain fromChain;
 
     @Column(name = "from_value", nullable = false)
     private BigInteger fromValue;
 
     @ManyToOne()
     @JoinColumn(name = "to_chain_id", nullable = false)
-    private Chains toChain;
+    private Chain toChain;
 
     @Column(name = "to_value", nullable = false)
     private BigInteger toValue;
