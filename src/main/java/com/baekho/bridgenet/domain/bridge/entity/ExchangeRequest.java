@@ -24,21 +24,21 @@ import java.time.LocalDateTime;
 public class ExchangeRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @Column(name = "id_in_smart_contract")
-    BigInteger idInSmartContract;
+    private BigInteger idInSmartContract;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    Users user;
+    private Users user;
 
     @ManyToOne()
     @JoinColumn(name = "from_chain_id", nullable = false)
-    Chains fromChain;
+    private Chains fromChain;
 
     @Column(name = "from_value", nullable = false)
-    BigInteger fromValue;
+    private BigInteger fromValue;
 
     @ManyToOne()
     @JoinColumn(name = "to_chain_id", nullable = false)

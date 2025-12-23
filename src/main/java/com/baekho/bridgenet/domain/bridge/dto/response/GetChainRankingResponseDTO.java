@@ -11,6 +11,6 @@ public class GetChainRankingResponseDTO {
     private int ranking;
     private Long chainId;
     private String chainName;
-    private BigInteger value;
+    private BigInteger value;   
     private String unit;
 }

@@ -12,9 +12,11 @@ import java.time.LocalDateTime;
 public class BridgeHistoryResponseDTO {
     private Long id;
     private Long fromChainId;
+    private String fromChainName;
     private BigInteger fromValue;
     private String fromUnit;
     private Long toChainId;
+    private String toChainName;
     private BigInteger toValue;
     private String toUnit;
     private RequestStatus status;

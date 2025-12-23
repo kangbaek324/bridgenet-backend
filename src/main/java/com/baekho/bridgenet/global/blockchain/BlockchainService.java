@@ -245,6 +245,8 @@ public class BlockchainService {
     }
 
     public Bridge createBridgeObject(Chains chain) {
+        // @TODO
+        // 메서드와 약간 의미가 맞지 않는듯 수정 필요
         Web3j web3j = Web3j.build(new HttpService(chain.getHttpRpc()));
 
         httpWeb3jMap.put(chain.getChainId(), web3j);
