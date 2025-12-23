@@ -1,12 +1,12 @@
 package com.baekho.bridgenet.domain.bridge.dto.response;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigInteger;
 
 @Getter
-@AllArgsConstructor
+@Builder
 public class ChainUpdateResponseDTO {
     private Long chainId;
     private String chainName;

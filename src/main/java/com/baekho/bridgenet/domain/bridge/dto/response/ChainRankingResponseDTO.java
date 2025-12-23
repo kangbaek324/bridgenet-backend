@@ -7,12 +7,10 @@ import java.math.BigInteger;
 
 @Getter
 @Builder
-public class ChainAddResponseDTO {
+public class ChainRankingResponseDTO {
+    private int ranking;
     private Long chainId;
     private String chainName;
-    private String smartContractAddress;
-    private BigInteger smartContractValue;
+    private BigInteger value;   
     private String unit;
-    private String httpRpc;
-    private String wsRpc;
 }

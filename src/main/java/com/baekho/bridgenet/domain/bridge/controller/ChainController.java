@@ -27,8 +27,8 @@ public class ChainController {
 
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping("")
-    public ResponseEntity<SuccessResponse<ChainListGetResponseDTO>> getChainList() {
-        ChainListGetResponseDTO result = chainService.getChainList();
+    public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
+        ChainListResponseDTO result = chainService.getChainList();
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
@@ -70,10 +70,10 @@ public class ChainController {
 
     @Operation(summary = "체인 랭킹 조회", description = "자금 유입/유출순으로 랭킹을 조회합니다.")
     @GetMapping("/ranking")
-    public ResponseEntity<SuccessResponse<List<GetChainRankingResponseDTO>>> getChainRanking(
+    public ResponseEntity<SuccessResponse<List<ChainRankingResponseDTO>>> getChainRanking(
             @RequestParam(name = "sort", defaultValue = "in") String sort
     ) {
-        List<GetChainRankingResponseDTO> result = chainService.getChainRanking(sort);
+        List<ChainRankingResponseDTO> result = chainService.getChainRanking(sort);
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 

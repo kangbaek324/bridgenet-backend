@@ -48,23 +48,24 @@ public class ChainService {
     private final Map<Long, Web3j> httpWeb3jMap;
     private final Map<Long, Disposable> subMap;
 
-    public ChainListGetResponseDTO getChainList() {
+    public ChainListResponseDTO getChainList() {
         List<Chains> chains = chainsRepository.findAll();
-        List<ChainGetDetailDTO> chainGetDetailDTOS = new ArrayList<>();
+        List<ChainDetailDTO> chainGetDetailDTOS = new ArrayList<>();
 
         for(Chains chain : chains) {
             chainGetDetailDTOS.add(
-                    new ChainGetDetailDTO(
-                            chain.getChainId(),
-                            chain.getChainName(),
-                            chain.getSmartContractAddress(),
-                            chain.getSmartContractValue(),
-                            chain.getUnit()
-                    )
+                    ChainDetailDTO.
+                            builder()
+                            .chainId(chain.getChainId())
+                            .chainName(chain.getChainName())
+                            .smartContractAddress(chain.getSmartContractAddress())
+                            .smartContractValue(chain.getSmartContractValue())
+                            .unit(chain.getUnit())
+                            .build()
             );
         }
 
-        return new ChainListGetResponseDTO(chainGetDetailDTOS);
+        return new ChainListResponseDTO(chainGetDetailDTOS);
     }
 
     @Transactional
@@ -90,15 +91,16 @@ public class ChainService {
 
         blockchainService.subscribeToContractEvents(bridge, chain, dto.getContractCreatedBlockNumber());
 
-        return new ChainAddResponseDTO(
-                chain.getChainId(),
-                chain.getChainName(),
-                chain.getSmartContractAddress(),
-                chain.getSmartContractValue(),
-                chain.getUnit(),
-                chain.getHttpRpc(),
-                chain.getWsRpc()
-        );
+        return ChainAddResponseDTO
+                .builder()
+                .chainId(chain.getChainId())
+                .chainName(chain.getChainName())
+                .smartContractAddress(chain.getSmartContractAddress())
+                .smartContractValue(chain.getSmartContractValue())
+                .unit(chain.getUnit())
+                .httpRpc(chain.getHttpRpc())
+                .wsRpc(chain.getWsRpc())
+                .build();
     }
 
     @Transactional
@@ -134,15 +136,15 @@ public class ChainService {
             blockchainService.subscribeToContractEvents(bridge, chain, chain.getLastBlockNumber());
         }
 
-        return new ChainUpdateResponseDTO(
-                chain.getChainId(),
-                chain.getChainName(),
-                chain.getSmartContractAddress(),
-                chain.getSmartContractValue(),
-                chain.getUnit(),
-                chain.getHttpRpc(),
-                chain.getWsRpc()
-        );
+        return ChainUpdateResponseDTO.builder()
+                .chainId(chain.getChainId())
+                .chainName(chain.getChainName())
+                .smartContractAddress(chain.getSmartContractAddress())
+                .smartContractValue(chain.getSmartContractValue())
+                .unit(chain.getUnit())
+                .httpRpc(chain.getHttpRpc())
+                .wsRpc(chain.getWsRpc())
+                .build();
     }
 
     @Transactional
@@ -186,25 +188,26 @@ public class ChainService {
         );
     }
 
-    public List<GetChainRankingResponseDTO> getChainRanking(String sort) {
+    public List<ChainRankingResponseDTO> getChainRanking(String sort) {
         List<List<Object>> chainRankingDB = switch (sort) {
             case "in" -> exchangeRequestRepository.findTotalToValueByChain(RequestStatus.APPROVE);
             case "out" -> exchangeRequestRepository.findTotalFromValueByChain(RequestStatus.APPROVE);
             default -> throw new IllegalArgumentException("sort 는 in, out 만 허용합니다.");
         };
 
-        List<GetChainRankingResponseDTO> chainRanking = new ArrayList<>();
+        List<ChainRankingResponseDTO> chainRanking = new ArrayList<>();
         int chainRankingIndex = 1;
 
         for (List<Object> chain : chainRankingDB) {
             chainRanking.add(
-                new GetChainRankingResponseDTO(
-                        chainRankingIndex,
-                        (Long) chain.get(0),
-                        (String) chain.get(1),
-                        (BigInteger) chain.get(2),
-                        (String) chain.get(3)
-                )
+                ChainRankingResponseDTO
+                    .builder()
+                    .ranking(chainRankingIndex)
+                    .chainId((Long) chain.get(0))
+                    .chainName((String) chain.get(1))
+                    .value((BigInteger) chain.get(2))
+                    .unit((String) chain.get(3))
+                    .build()
             );
 
             chainRankingIndex++;
