@@ -1,10 +1,11 @@
 package com.baekho.bridgenet.domain.chain.service;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
+import com.baekho.bridgenet.domain.chain.dto.request.AddContractBalanceRequestDTO;
+import com.baekho.bridgenet.domain.chain.dto.request.ChainAddRequestDTO;
+import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
+import com.baekho.bridgenet.domain.chain.dto.response.*;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;

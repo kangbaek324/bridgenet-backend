@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.bridge.dto.request;
+package com.baekho.bridgenet.domain.chain.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

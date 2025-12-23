@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-    name = "exchange_request",
+    name = "exchange_requests",
     uniqueConstraints = {
         @UniqueConstraint(columnNames = {"from_chain_id", "id_in_smart_contract"})
     }

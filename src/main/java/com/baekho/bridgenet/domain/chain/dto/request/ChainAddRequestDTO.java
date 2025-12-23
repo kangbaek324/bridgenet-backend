@@ -1,19 +1,21 @@
-package com.baekho.bridgenet.domain.bridge.dto.request;
+package com.baekho.bridgenet.domain.chain.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigInteger;
 
 @Getter
-@AllArgsConstructor
-public class ChainUpdateRequestDTO {
+public class ChainAddRequestDTO {
     @Schema(description = "체인 이름", example = "ethereum")
     @NotBlank
     private String chainName;
+
+    @Schema(description = "체인 아이디", example = "1")
+    @NotNull
+    private Long chainId;
 
     @Schema(description = "스마트컨트랙트 주소", example = "0x...")
     @NotBlank
@@ -34,4 +36,8 @@ public class ChainUpdateRequestDTO {
     @Schema(description = "체인 Websocket RPC", example = "wss://..")
     @NotBlank
     private String wsRpc;
+
+    @Schema(description = "컨트랙트가 생성된 블록 번호", example = "103221")
+    @NotNull
+    private BigInteger contractCreatedBlockNumber;
 }

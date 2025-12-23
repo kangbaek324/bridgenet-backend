@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.bridge.dto.response;
+package com.baekho.bridgenet.domain.chain.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import java.math.BigInteger;
 
 @Getter
 @Builder
-public class ChainAddResponseDTO {
+public class ChainUpdateResponseDTO {
     private Long chainId;
     private String chainName;
     private String smartContractAddress;

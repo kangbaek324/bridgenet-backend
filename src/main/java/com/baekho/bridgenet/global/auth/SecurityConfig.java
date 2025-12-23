@@ -42,6 +42,9 @@ public class SecurityConfig {
                         // Auth
                         .requestMatchers("/api/auth/**").permitAll()
 
+                        // Rpc
+                        .requestMatchers("/api/rpc/**").permitAll()
+
                         // Bridge
                         .requestMatchers(HttpMethod.GET, "/api/bridge/request/history/my").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/bridge/request/history/*").permitAll()
