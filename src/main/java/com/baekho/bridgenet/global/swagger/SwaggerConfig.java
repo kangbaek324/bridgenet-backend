@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.global.config;
+package com.baekho.bridgenet.global.swagger;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;

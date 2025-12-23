@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.global.config;
+package com.baekho.bridgenet.global.blockchain;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

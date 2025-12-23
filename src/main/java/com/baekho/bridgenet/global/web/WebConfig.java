@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.global.config;
+package com.baekho.bridgenet.global.web;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

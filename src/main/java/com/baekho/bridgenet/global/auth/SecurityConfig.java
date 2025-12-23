@@ -1,6 +1,5 @@
-package com.baekho.bridgenet.global.config;
+package com.baekho.bridgenet.global.auth;
 
-import com.baekho.bridgenet.global.auth.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

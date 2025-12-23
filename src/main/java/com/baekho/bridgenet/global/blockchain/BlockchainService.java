@@ -8,10 +8,10 @@ import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ChainsRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
+import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.ChainException;
-import com.baekho.bridgenet.global.contract.bridge.Bridge;
 import io.reactivex.disposables.Disposable;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -119,16 +119,24 @@ public class BlockchainService {
     private void recoverEvent(Web3j httpWeb3, Chains chain, Bridge bridge, BigInteger nowBlockNumber) throws IOException, InterruptedException {
         BigInteger lastBlockNumber = chain.getLastBlockNumber();
 
+        // 맨처음 복구를 시작한 블록
+        BigInteger recoverStartBlock = lastBlockNumber.add(BigInteger.ONE);
+
+        // 매 시도마다 블록 시작값과 마지막 블록값
         BigInteger startBlockNumber = lastBlockNumber.add(BigInteger.valueOf(1));
         BigInteger finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(1000));
 
-        log.info("---- Start Recover Requested Event ChainId: {} ---", chain.getChainId());
+        log.info("---- Start Recover Requested Event ChainId: {} ---\n", chain.getChainId());
 
         boolean isFinish = false;
         while (true) {
+            showPercentLog(chain, recoverStartBlock, nowBlockNumber, finishBlockNumber);
+
             if (finishBlockNumber.compareTo(nowBlockNumber) > 0) {
                 finishBlockNumber = nowBlockNumber;
                 isFinish = true;
+
+                System.out.println("\n");
             }
 
             EthFilter filter = new EthFilter(
@@ -163,6 +171,35 @@ public class BlockchainService {
         chainsRepository.save(chain);
 
         log.info("---- Success Recover Requested Event ----");
+    }
+
+    private static void showPercentLog(
+            Chains chain,
+            BigInteger recoverStartBlock,
+            BigInteger recoverEndBlockNumber,
+            BigInteger nowRecoverBlockNumber
+    ) {
+        BigInteger total = recoverEndBlockNumber.subtract(recoverStartBlock);
+        BigInteger progressed = nowRecoverBlockNumber.subtract(recoverStartBlock);
+
+        double percent;
+        if (total.signum() <= 0) {
+            percent = 100.0;
+        } else {
+            percent = progressed
+                    .max(BigInteger.ZERO)
+                    .min(total)
+                    .multiply(BigInteger.valueOf(100))
+                    .doubleValue() / total.doubleValue();
+        }
+
+        System.out.printf(
+                "\r[Recovering %s] Now: %s | End: %s (%.2f%%)",
+                chain.getChainName(),
+                nowRecoverBlockNumber.toString(),
+                recoverEndBlockNumber.toString(),
+                percent
+        );
     }
 
 
