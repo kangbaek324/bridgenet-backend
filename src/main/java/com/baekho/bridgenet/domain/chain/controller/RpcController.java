@@ -1,7 +1,6 @@
 package com.baekho.bridgenet.domain.chain.controller;
 
 import com.baekho.bridgenet.domain.chain.dto.response.ChainRpcGroupDTO;
-import com.baekho.bridgenet.domain.chain.dto.response.RpcResponseDTO;
 import com.baekho.bridgenet.domain.chain.service.RpcService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController

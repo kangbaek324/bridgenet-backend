@@ -13,6 +13,7 @@ import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.bridge.sepcification.ExchangeRequestSpecification;
+import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.BridgeErrorCode;
@@ -41,8 +42,9 @@ import java.util.Map;
 public class BridgeService {
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
+    private final RpcState rpcState;
 
-    private final Map<Long, Bridge> bridgeMap;
+    private final Map<Long, List<Bridge>> bridgeMap;
 
     public void setRequestOptionStatus(RequestOptionSetRequestDTO dto, Users user) {
         ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
@@ -60,7 +62,7 @@ public class BridgeService {
         exchangeRequestOptionRepository.save(option);
     }
 
-    // @TODO getExchangeHistory와 함수 합치기
+    // @TODO getExchangeHistory 함수 합치기
     public Page<BridgeHistoryResponseDTO> getExchangeAllHistory(
             String sortType,
             int size,
@@ -207,6 +209,9 @@ public class BridgeService {
         ExchangeRequest request = exchangeRequestRepository.findById(id)
                 .orElseThrow(()-> new BridgeException(BridgeErrorCode.REQUEST_NOT_FOUND));
 
+        Chain fromChain = request.getFromChain();
+        Chain toChain = request.getToChain();
+
         if (request.getApproveStatus() != RequestStatus.PENDING) throw new BridgeException(BridgeErrorCode.REQUEST_ALREADY_PROCESSED);
 
         request.setApproveStatus(dto.getApproveStatus() ? RequestStatus.APPROVE : RequestStatus.REJECT);
@@ -217,8 +222,10 @@ public class BridgeService {
         TransactionReceipt receipt;
         if (dto.getApproveStatus()) {
             try {
-                 Bridge bridge = bridgeMap.get(request.getToChain().getChainId());
-                 receipt = bridge.triggerPayout(request.getUser().getAddress(), request.getFromValue()).send();
+                Long chainId = toChain.getChainId();
+
+                Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
+                receipt = bridge.triggerPayout(request.getUser().getAddress(), request.getFromValue()).send();
             } catch (Exception e) {
                 log.error("Trigger Payout Error: {}", e.getMessage(), e);
                 throw new BlockchainException(BlockchainErrorCode.ERROR);
@@ -226,7 +233,9 @@ public class BridgeService {
         }
         else {
             try {
-                Bridge bridge = bridgeMap.get(request.getFromChain().getChainId());
+                Long chainId = fromChain.getChainId();
+
+                Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
                 receipt = bridge.cancelRequest(request.getIdInSmartContract()).send();
             } catch (Exception e) {
                 log.error("Cancel Request Error: {}", e.getMessage(), e);
@@ -238,9 +247,6 @@ public class BridgeService {
         request.setToTransactionHash(transactionHash);
 
         // Response
-        Chain toChain = request.getToChain();
-        Chain fromChain = request.getFromChain();
-
         ChainDetailApproveDTO from = ChainDetailApproveDTO
                 .builder()
                 .chainId(fromChain.getChainId())

@@ -10,6 +10,7 @@ import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.global.blockchain.BlockchainService;
+import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
@@ -45,15 +46,17 @@ public class ChainService {
     private final ChainRepository chainRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final BlockchainService blockchainService;
-    private final Map<Long, Bridge> bridgeMap;
-    private final Map<Long, Web3j> httpWeb3jMap;
+    private final RpcState rpcState;
+
+    private final Map<Long, List<Bridge>> bridgeMap;
+    private final Map<Long, List<Web3j>> httpWeb3jMap;
     private final Map<Long, Disposable> subMap;
 
     public ChainListResponseDTO getChainList() {
         List<Chain> chains = chainRepository.findAll();
         List<ChainDetailDTO> chainGetDetailDTOS = new ArrayList<>();
 
-        for(Chain chain : chains) {
+        for (Chain chain : chains) {
             chainGetDetailDTOS.add(
                     ChainDetailDTO.
                             builder()
@@ -87,10 +90,10 @@ public class ChainService {
 
         chainRepository.save(chain);
 
-        Bridge bridge = blockchainService.createBridgeObject(chain);
-        bridgeMap.put(chain.getChainId(), bridge);
+//        Bridge bridge = blockchainService.createBridgeObject(chain, );
+//        bridgeMap.put(chain.getChainId(), bridge);
 
-        blockchainService.subscribeToContractEvents(bridge, chain, dto.getContractCreatedBlockNumber());
+//        blockchainService.subscribeToContractEvents(bridge, chain, dto.getContractCreatedBlockNumber());
 
         return ChainAddResponseDTO
                 .builder()
@@ -121,8 +124,8 @@ public class ChainService {
 
         chainRepository.save(chain);
 
-        Bridge bridge = blockchainService.createBridgeObject(chain);
-        bridgeMap.put(chain.getChainId(), bridge);
+//        Bridge bridge = blockchainService.createBridgeObject(chain);
+//        bridgeMap.put(chain.getChainId(), bridge);
 
         // 스마트 컨트랙트가 또는 RPC 변경시
         if (
@@ -134,7 +137,7 @@ public class ChainService {
             sub.dispose();
 
             // 새 구독 등록
-            blockchainService.subscribeToContractEvents(bridge, chain, chain.getLastBlockNumber());
+//            blockchainService.subscribeToContractEvents(bridge, chain, chain.getLastBlockNumber());
         }
 
         return ChainUpdateResponseDTO.builder()
@@ -154,7 +157,7 @@ public class ChainService {
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         chainRepository.delete(chain);
 
-        blockchainService.createBridgeObject(chain);
+//        blockchainService.createBridgeObject(chain);
         bridgeMap.remove(chain.getChainId());
 
         // 구독 취소
@@ -166,7 +169,7 @@ public class ChainService {
         Chain chain = chainRepository.findById(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
-        Web3j web3j = httpWeb3jMap.get(chainId);
+        Web3j web3j = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
 
         EthGetBalance balance;
 
@@ -223,7 +226,7 @@ public class ChainService {
 
         // @TODO 체인별 가스 지정 필요
         try {
-            Bridge bridge = bridgeMap.get(chain.getChainId());
+            Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
             bridge.addBalance(
                     Convert.toWei(dto.getBalance(), Convert.Unit.ETHER).toBigInteger()
             ).send();
@@ -240,7 +243,7 @@ public class ChainService {
         TransactionReceipt receipt;
 
         try {
-            receipt = bridgeMap.get(chain.getChainId()).setWhiteList(user.getAddress(), true).send();
+            receipt = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId)).setWhiteList(user.getAddress(), true).send();
         } catch (Exception e) {
             log.error("Set WhiteList Error: {}", e.getMessage(), e);
             throw new BlockchainException(BlockchainErrorCode.ERROR);
