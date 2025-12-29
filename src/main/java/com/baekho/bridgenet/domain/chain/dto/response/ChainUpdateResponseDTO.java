@@ -11,8 +11,5 @@ public class ChainUpdateResponseDTO {
     private Long chainId;
     private String chainName;
     private String smartContractAddress;
-    private BigInteger smartContractValue;
     private String unit;
-    private String httpRpc;
-    private String wsRpc;
 }

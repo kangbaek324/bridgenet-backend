@@ -6,6 +6,7 @@ import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/rpc")
+@RequestMapping("/api/rpcs")
 public class RpcController {
     private final RpcService rpcService;
 
@@ -23,4 +24,7 @@ public class RpcController {
 
         return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
+
+//    @PostMapping("/{id}")
+//    public ResponseEntity<SuccessResponse>
 }

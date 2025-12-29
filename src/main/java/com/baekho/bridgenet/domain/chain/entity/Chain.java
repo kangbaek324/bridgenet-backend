@@ -17,26 +17,28 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Chain {
     @Id
-    @Column(name = "chain_id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "chain_id", nullable = false, unique = true)
     private Long chainId;
 
-    @Column(name = "chain_name", nullable = false)
+    @Column(name = "chain_name", nullable = false, unique = true)
     private String chainName;
 
     @Column(name = "smart_contract_address", nullable = false)
     private String smartContractAddress;
 
+    @Builder.Default
     @Column(name = "smart_contract_value", nullable = false)
-    private BigInteger smartContractValue;
+    private BigInteger smartContractValue = BigInteger.valueOf(0);
 
     @Column(name = "unit")
     private String unit;
 
-    @Column(name = "http_rpc", nullable = false)
-    private String httpRpc;
-
-    @Column(name = "ws_rpc", nullable = false)
-    private String wsRpc;
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean status = false;
 
     @Column(name = "last_block_number", nullable = false)
     private BigInteger lastBlockNumber;

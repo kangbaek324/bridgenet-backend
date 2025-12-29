@@ -65,8 +65,7 @@ public class BlockchainService {
 
         // Bridge 컨트랙트 인스턴스 Map 에 추가
         for (Chain chain : chains) {
-            List<Rpc> rpcs = rpcRepository.findAllByChain(chain)
-                    .orElseThrow(() -> new Error("RPC를 찾을 수 없습니다"));
+            List<Rpc> rpcs = rpcRepository.findAllByChain(chain);
 
             for (Rpc rpc : rpcs) {
                 Web3j web3j = Web3j.build(new HttpService(rpc.getHttp()));

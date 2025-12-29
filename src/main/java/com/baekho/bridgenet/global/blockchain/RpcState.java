@@ -30,11 +30,12 @@ public class RpcState {
         });
     }
 
+    // @TODO RPC 추가/삭제시 카운드가 늘어나도록 변경해야됨
     public int rpcCount(Long chainId) {
-        long chainRpcNumber = rpcNumber.get(chainId);
-        int chainRpcCount = rpcCount.get(chainId);
+        Long chainRpcNumber = rpcNumber.get(chainId);
+        if (chainRpcNumber == null) throw new IllegalStateException("RPC가 존재하지 않습니다.");
 
-        if (chainRpcNumber == 0) throw new IllegalStateException("RPC가 존재하지 않습니다.");
+        int chainRpcCount = rpcCount.get(chainId);
 
         if (chainRpcCount > chainRpcNumber - 1) {
             rpcCount.put(chainId, 1);

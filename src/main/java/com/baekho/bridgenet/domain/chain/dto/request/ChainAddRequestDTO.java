@@ -21,21 +21,9 @@ public class ChainAddRequestDTO {
     @NotBlank
     private String smartContractAddress;
 
-    @Schema(description = "현재 스마트컨트랙트의 코인 양", example = "0.5ETH -> 0.5")
-    @NotNull
-    private BigInteger smartContractValue;
-
     @Schema(description = "네이티브 토큰 단위", example = "ETH")
     @NotBlank
     private String unit;
-
-    @Schema(description = "체인 Http RPC", example = "http://..")
-    @NotBlank
-    private String httpRpc;
-
-    @Schema(description = "체인 Websocket RPC", example = "wss://..")
-    @NotBlank
-    private String wsRpc;
 
     @Schema(description = "컨트랙트가 생성된 블록 번호", example = "103221")
     @NotNull

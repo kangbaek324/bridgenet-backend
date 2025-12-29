@@ -22,10 +22,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/bridge/chain")
+@RequestMapping("api/bridge/chains")
 public class ChainController {
     private final ChainService chainService;
 
+    // @TODO 비활성화 체인 안보여주도록 수정해야함
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping("")
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
@@ -67,6 +68,26 @@ public class ChainController {
         return ResponseEntity
                 .status(204)
                 .body(new SuccessResponse<>("", null));
+    }
+
+    @Operation(summary = "체인 활성화", description = "체인을 활성화 합니다.")
+    @PostMapping("{chainId}/activate")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<Void>> activateChain(
+            @PathVariable Long chainId
+    ) {
+        chainService.activateChain(chainId);
+        return ResponseEntity.ok(new SuccessResponse<>("", null));
+    }
+
+    @Operation(summary = "체인 비활성화", description = "체인을 비활성화 합니다.")
+    @PostMapping("{chainId}/deactivate")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<Void>> deActivateChain(
+            @PathVariable Long chainId
+    ) {
+        chainService.deActivateChain(chainId);
+        return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
     @Operation(summary = "체인 랭킹 조회", description = "자금 유입/유출순으로 랭킹을 조회합니다.")
