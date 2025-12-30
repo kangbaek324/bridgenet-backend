@@ -56,25 +56,29 @@ public class ChainService {
     private final Map<Long, List<Web3j>> httpWeb3jMap;
     private final Map<Long, Disposable> subMap;
 
-    public ChainListResponseDTO getChainList() {
-        List<Chain> chains = chainRepository.findAllByStatus(true);
-        List<ChainDetailDTO> chainGetDetailDTOS = new ArrayList<>();
+    public ChainListResponseDTO getChainList(Boolean status) {
+        List<Chain> chains;
 
-        for (Chain chain : chains) {
-            chainGetDetailDTOS.add(
-                    ChainDetailDTO.
-                            builder()
-                            .chainId(chain.getChainId())
-                            .chainName(chain.getChainName())
-                            .smartContractAddress(chain.getSmartContractAddress())
-                            .smartContractValue(chain.getSmartContractValue())
-                            .unit(chain.getUnit())
-                            .build()
-            );
+        if (status == null) {
+            chains = chainRepository.findAll();
+        } else {
+            chains = chainRepository.findAllByStatus(status);
         }
+
+        List<ChainDetailDTO> chainGetDetailDTOS = chains.stream()
+                .map(chain -> ChainDetailDTO.builder()
+                        .chainId(chain.getChainId())
+                        .chainName(chain.getChainName())
+                        .smartContractAddress(chain.getSmartContractAddress())
+                        .smartContractValue(chain.getSmartContractValue())
+                        .unit(chain.getUnit())
+                        .build()
+                )
+                .toList();
 
         return new ChainListResponseDTO(chainGetDetailDTOS);
     }
+
 
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
         Optional<Chain> existing = chainRepository.findByChainId(dto.getChainId());

@@ -7,12 +7,10 @@ import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
 import com.baekho.bridgenet.domain.chain.dto.response.*;
 import com.baekho.bridgenet.domain.chain.service.ChainService;
-import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -31,19 +29,19 @@ public class ChainController {
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
-        ChainListResponseDTO result = chainService.getChainList();
+        ChainListResponseDTO result = chainService.getChainList(true);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
-//    @Operation(summary = "체인 리스트 조회 (비활성화 포함)", description = "서비스에서 제공하는 체인의 리스트를 조회합니다. (비활성화 포함)")
-//    @GetMapping
-//    @PreAuthorize("@authService.isAdmin(principal)")
-//    public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getAllChainList() {
-//        ChainListResponseDTO result = chainService.getChainList();
-//
-//        return ResponseEntity.ok(new SuccessResponse<>("", result));
-//    }
+    @Operation(summary = "체인 리스트 조회 (비활성화 포함)", description = "서비스에서 제공하는 체인의 리스트를 조회합니다. (비활성화 포함)")
+    @GetMapping("all")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getAllChainList() {
+        ChainListResponseDTO result = chainService.getChainList(null);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
 
     @Operation(summary = "체인 추가", description = "새로운 체인을 추가합니다.")
     @PostMapping
