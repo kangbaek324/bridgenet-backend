@@ -16,6 +16,7 @@ import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
@@ -131,6 +132,7 @@ public class ChainService {
         deActivateChain(chainId);
     }
 
+    // @TODO 할성화시 이벤트 복구로직이 같이 작동하도록 해야됨
     public void activateChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
@@ -156,12 +158,12 @@ public class ChainService {
     private void setupChainRuntime(Chain chain) {
         Long chainId = chain.getChainId();
 
-        // RPC 연결
-        List<Rpc> rpcs = rpcRepository.findAllByChain(chain);
+        // RPC 연결 HTTP
+        List<Rpc> rpcs = rpcRepository.findAllByChainAndProtocol(chain, Protocol.HTTP);
         if (rpcs.isEmpty()) throw new ChainException(ChainErrorCode.RPC_NOT_CONNECTED);
 
         for (Rpc rpc : rpcs) {
-            Web3j web3j = Web3j.build(new HttpService(rpc.getHttp()));
+            Web3j web3j = Web3j.build(new HttpService(rpc.getUrl()));
 
             httpWeb3jMap
                     .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())

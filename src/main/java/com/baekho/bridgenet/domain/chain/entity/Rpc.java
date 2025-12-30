@@ -1,5 +1,6 @@
 package com.baekho.bridgenet.domain.chain.entity;
 
+import com.baekho.bridgenet.global.common.enums.Protocol;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,9 +23,10 @@ public class Rpc {
     @Column(name = "service_name", nullable = false)
     private String serviceName;
 
-    @Column()
-    private String http;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Protocol protocol;
 
-    @Column()
-    private String ws;
+    @Column(nullable = false, unique = true)
+    private String url;
 }

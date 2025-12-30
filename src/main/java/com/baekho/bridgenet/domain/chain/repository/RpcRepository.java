@@ -3,6 +3,7 @@ package com.baekho.bridgenet.domain.chain.repository;
 import com.baekho.bridgenet.domain.chain.dto.ChainCountDTO;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.entity.Rpc;
+import com.baekho.bridgenet.global.common.enums.Protocol;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface RpcRepository extends JpaRepository<Rpc, Long> {
-    List<Rpc> findAllByChain(Chain chain);
+    List<Rpc> findAllByChainAndProtocol(Chain chain, Protocol protocol);
 
     @Query("SELECT new com.baekho.bridgenet.domain.chain.dto.ChainCountDTO(r.chain.chainId, COUNT(r)) " +
             "FROM Rpc r " +

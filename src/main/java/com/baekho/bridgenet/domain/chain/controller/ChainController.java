@@ -7,6 +7,7 @@ import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
 import com.baekho.bridgenet.domain.chain.dto.response.*;
 import com.baekho.bridgenet.domain.chain.service.ChainService;
+import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -25,6 +26,7 @@ import java.util.List;
 @RequestMapping("api/bridge/chains")
 public class ChainController {
     private final ChainService chainService;
+    private final RpcState rpcState;
 
     // @TODO 비활성화 체인 안보여주도록 수정해야함
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")

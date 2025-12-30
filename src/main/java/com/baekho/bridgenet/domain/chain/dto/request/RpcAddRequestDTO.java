@@ -1,12 +1,10 @@
-package com.baekho.bridgenet.domain.chain.dto.response;
+package com.baekho.bridgenet.domain.chain.dto.request;
 
 import com.baekho.bridgenet.global.common.enums.Protocol;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
-public class RpcResponseDTO {
+public class RpcAddRequestDTO {
     private String serviceName;
     private String url;
     private Protocol protocol;

@@ -12,6 +12,7 @@ import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import io.reactivex.disposables.Disposable;
@@ -61,14 +62,15 @@ public class BlockchainService {
 
     @PostConstruct
     public void init() throws IOException {
-        List<Chain> chains = chainRepository.findAll();
+        List<Chain> chains = chainRepository.findByStatus(true);
 
         // Bridge 컨트랙트 인스턴스 Map 에 추가
         for (Chain chain : chains) {
-            List<Rpc> rpcs = rpcRepository.findAllByChain(chain);
+            List<Rpc> rpcs = rpcRepository.findAllByChainAndProtocol(chain, Protocol.HTTP);
 
+            // RPC 등록
             for (Rpc rpc : rpcs) {
-                Web3j web3j = Web3j.build(new HttpService(rpc.getHttp()));
+                Web3j web3j = Web3j.build(new HttpService(rpc.getUrl()));
 
                 httpWeb3jMap
                         .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
@@ -80,10 +82,7 @@ public class BlockchainService {
                         .add(bridge);
             }
 
-        }
-
-        // 누락 이벤트 복구 및 이벤트 리스너 등록
-        for (Chain chain : chains) {
+            // 누락 이벤트 복구 및 이벤트 리스너 등록
             Long chainId = chain.getChainId();
 
             Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
