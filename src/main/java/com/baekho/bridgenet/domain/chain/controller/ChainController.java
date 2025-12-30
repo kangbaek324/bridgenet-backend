@@ -30,7 +30,7 @@ public class ChainController {
 
     // @TODO 비활성화 체인 안보여주도록 수정해야함
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
         ChainListResponseDTO result = chainService.getChainList();
 
@@ -38,7 +38,7 @@ public class ChainController {
     }
 
     @Operation(summary = "체인 추가", description = "새로운 체인을 추가합니다.")
-    @PostMapping("")
+    @PostMapping
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainAddResponseDTO>> addChain(
             @Valid @RequestBody ChainAddRequestDTO dto

@@ -56,7 +56,7 @@ public class ChainService {
     private final Map<Long, Disposable> subMap;
 
     public ChainListResponseDTO getChainList() {
-        List<Chain> chains = chainRepository.findAll();
+        List<Chain> chains = chainRepository.findAllByStatus(true);
         List<ChainDetailDTO> chainGetDetailDTOS = new ArrayList<>();
 
         for (Chain chain : chains) {

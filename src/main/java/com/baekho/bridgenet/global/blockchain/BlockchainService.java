@@ -62,7 +62,7 @@ public class BlockchainService {
 
     @PostConstruct
     public void init() throws IOException {
-        List<Chain> chains = chainRepository.findByStatus(true);
+        List<Chain> chains = chainRepository.findAllByStatus(true);
 
         // Bridge 컨트랙트 인스턴스 Map 에 추가
         for (Chain chain : chains) {
