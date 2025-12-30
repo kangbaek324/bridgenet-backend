@@ -11,6 +11,7 @@ import com.baekho.bridgenet.domain.chain.entity.Rpc;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
+import com.baekho.bridgenet.domain.chain.repository.projection.ChainStatusProjection;
 import com.baekho.bridgenet.global.blockchain.BlockchainService;
 import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
@@ -93,12 +94,14 @@ public class ChainService {
                 .builder()
                 .chainId(chain.getChainId())
                 .chainName(chain.getChainName())
+                .chainStatus(chain.isStatus())
                 .smartContractAddress(chain.getSmartContractAddress())
                 .smartContractValue(chain.getSmartContractValue())
                 .unit(chain.getUnit())
                 .build();
     }
 
+    // @TODO 중복 칼럼 예외 추가해야됨
     public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
@@ -116,20 +119,29 @@ public class ChainService {
             setupChainRuntime(chain);
         }
 
-        return ChainUpdateResponseDTO.builder()
+        return ChainUpdateResponseDTO
+                .builder()
                 .chainId(chain.getChainId())
                 .chainName(chain.getChainName())
+                .chainStatus(chain.isStatus())
                 .smartContractAddress(chain.getSmartContractAddress())
                 .unit(chain.getUnit())
                 .build();
     }
 
     public void removeChain(Long chainId) {
-        Chain chain = chainRepository.findById(chainId)
+        Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         chainRepository.delete(chain); // @TODO CASCADE 처리하기
         deActivateChain(chainId);
+    }
+
+    public ChainStatusResponseDTO getChainStatus(Long chainId) {
+        ChainStatusProjection projection  = chainRepository.findStatusByChainId(chainId)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        return new ChainStatusResponseDTO(projection.getStatus());
     }
 
     // @TODO 할성화시 이벤트 복구로직이 같이 작동하도록 해야됨

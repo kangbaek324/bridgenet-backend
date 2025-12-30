@@ -12,6 +12,7 @@ import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -26,9 +27,7 @@ import java.util.List;
 @RequestMapping("api/bridge/chains")
 public class ChainController {
     private final ChainService chainService;
-    private final RpcState rpcState;
 
-    // @TODO 비활성화 체인 안보여주도록 수정해야함
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
@@ -36,6 +35,15 @@ public class ChainController {
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
+
+//    @Operation(summary = "체인 리스트 조회 (비활성화 포함)", description = "서비스에서 제공하는 체인의 리스트를 조회합니다. (비활성화 포함)")
+//    @GetMapping
+//    @PreAuthorize("@authService.isAdmin(principal)")
+//    public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getAllChainList() {
+//        ChainListResponseDTO result = chainService.getChainList();
+//
+//        return ResponseEntity.ok(new SuccessResponse<>("", result));
+//    }
 
     @Operation(summary = "체인 추가", description = "새로운 체인을 추가합니다.")
     @PostMapping
@@ -70,6 +78,15 @@ public class ChainController {
         return ResponseEntity
                 .status(204)
                 .body(new SuccessResponse<>("", null));
+    }
+
+    @GetMapping("{chainId}/status")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<ChainStatusResponseDTO>> getChainStatus(
+            @PathVariable Long chainId
+    ) {
+        ChainStatusResponseDTO res = chainService.getChainStatus(chainId);
+        return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
 
     @Operation(summary = "체인 활성화", description = "체인을 활성화 합니다.")

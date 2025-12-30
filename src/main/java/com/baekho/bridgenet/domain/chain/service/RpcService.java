@@ -49,6 +49,7 @@ public class RpcService {
         return result;
     }
 
+    // @TODO 중복 칼럼 예외 처리해야됨
     public RpcAddResponseDTO addRpc(RpcAddRequestDTO dto, Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
