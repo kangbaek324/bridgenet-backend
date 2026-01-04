@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class RpcAddResponseDTO {
+    private Long id;
     private String serviceName;
     private String url;
     private Protocol protocol;
