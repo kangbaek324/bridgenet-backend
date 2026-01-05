@@ -82,6 +82,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
     }
 
+    @ExceptionHandler(RpcException.class)
+    public ResponseEntity<ErrorResponse<String>> RpcException(RpcException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(new ErrorResponse<>(e.getErrorCode().getMessage()));
+    }
+
     // 400
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse<String>> illegalArgumentException(IllegalArgumentException e) {

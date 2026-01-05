@@ -103,6 +103,16 @@ public class RpcService {
         );
     }
 
+    public void deleteRpc(Long id) {
+        Rpc rpc = rpcRepository.findById(id)
+                .orElseThrow(() -> new RpcException(RpcErrorCode.RPC_NOT_FOUND));
+
+        Chain chain = rpc.getChain();
+        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+
+        rpcRepository.delete(rpc);
+    }
+
     /**
      * 새로운 HTTP RPC를 등록합니다.
      * @param chain
