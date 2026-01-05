@@ -34,6 +34,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
+    // @TODO Status도 반환되도록 수정 해야됨
     @Operation(summary = "체인 리스트 조회 (비활성화 포함)", description = "서비스에서 제공하는 체인의 리스트를 조회합니다. (비활성화 포함)")
     @GetMapping("all")
     @PreAuthorize("@authService.isAdmin(principal)")

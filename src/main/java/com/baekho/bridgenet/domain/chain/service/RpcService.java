@@ -32,7 +32,6 @@ public class RpcService {
     private final RpcRepository rpcRepository;
     private final ChainRepository chainRepository;
     private final BlockchainService blockchainService;
-    private final RpcState rpcState;
 
     private final Map<Long, List<Bridge>> bridgeMap;
     private final Map<Long, List<Web3j>> httpWeb3jMap;
@@ -66,6 +65,8 @@ public class RpcService {
     public RpcAddResponseDTO addRpc(RpcAddRequestDTO dto, Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         Rpc rpc = Rpc.builder()
                 .chain(chain)
@@ -111,25 +112,5 @@ public class RpcService {
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         rpcRepository.delete(rpc);
-    }
-
-    /**
-     * 새로운 HTTP RPC를 등록합니다.
-     * @param chain
-     * Chain 객체
-     * @param rpc
-     * Rpc 객체
-     */
-    public void createRpc(Chain chain, Rpc rpc) {
-        Web3j web3j = Web3j.build(new HttpService(rpc.getUrl()));
-
-        httpWeb3jMap
-                .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
-                .add(web3j);
-
-        Bridge bridge = blockchainService.createBridgeObject(chain, web3j);
-        bridgeMap
-                .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
-                .add(bridge);
     }
 }

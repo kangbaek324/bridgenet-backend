@@ -2,7 +2,6 @@ package com.baekho.bridgenet.global.blockchain;
 
 import com.baekho.bridgenet.domain.chain.dto.ChainCountDTO;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
-import com.baekho.bridgenet.global.common.enums.RpcUpdateDirection;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -41,25 +40,5 @@ public class RpcState {
 
         long index = cursor.getAndIncrement();
         return (int) (index % size);
-    }
-
-    public void updateRpcNumber(Long chainId, int number, RpcUpdateDirection direction) {
-        if (number < 0) number = 0; // 음수 방지
-
-        Long chainRpcNumber = rpcNumber.get(chainId);
-        if (chainRpcNumber == null) chainRpcNumber = 0L; // 새로운 체인을 추가한뒤 새로운 RPC를 추가할때
-
-        switch (direction) {
-            case INCREASE -> rpcNumber.put(chainId, chainRpcNumber + number);
-            case DECREASE -> {
-                long newChainRpcNumber = chainRpcNumber - number;
-                if (newChainRpcNumber < 0) throw new IllegalStateException("RPC 갯수는 음수가 될 수 없습니다.");
-                rpcNumber.put(chainId, newChainRpcNumber);
-
-                AtomicLong index = rpcCount.computeIfAbsent(chainId, k -> new AtomicLong(0));
-                index.set(0);
-            }
-            default -> throw new IllegalStateException("Unknown direction: " + direction);
-        }
     }
 }

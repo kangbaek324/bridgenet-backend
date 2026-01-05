@@ -10,6 +10,7 @@ import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
+import com.baekho.bridgenet.domain.chain.service.RpcService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.Protocol;
@@ -70,16 +71,7 @@ public class BlockchainService {
 
             // RPC 등록
             for (Rpc rpc : rpcs) {
-                Web3j web3j = Web3j.build(new HttpService(rpc.getUrl()));
-
-                httpWeb3jMap
-                        .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
-                        .add(web3j);
-
-                Bridge bridge = createBridgeObject(chain, web3j);
-                bridgeMap
-                        .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
-                        .add(bridge);
+                createHttpRpc(chain, rpc);
             }
 
             // 누락 이벤트 복구 및 이벤트 리스너 등록
@@ -329,5 +321,26 @@ public class BlockchainService {
                         BigInteger.valueOf(150000)
                 )
         );
+    }
+
+    // @TODO RPC Service로 분리해야됨 순환 참조 문제 때문에 임시로 이동
+    /**
+     * 새로운 HTTP RPC를 등록합니다.
+     * @param chain
+     * Chain 객체
+     * @param rpc
+     * Rpc 객체
+     */
+    public void createHttpRpc(Chain chain, Rpc rpc) {
+        Web3j web3j = Web3j.build(new HttpService(rpc.getUrl()));
+
+        httpWeb3jMap
+                .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
+                .add(web3j);
+
+        Bridge bridge = createBridgeObject(chain, web3j);
+        bridgeMap
+                .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
+                .add(bridge);
     }
 }

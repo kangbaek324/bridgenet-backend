@@ -7,7 +7,6 @@ import com.baekho.bridgenet.domain.chain.dto.response.RpcAddResponseDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcUpdateResponseDTO;
 import com.baekho.bridgenet.domain.chain.service.RpcService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
-import io.netty.util.concurrent.SucceededFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
