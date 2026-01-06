@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -60,7 +61,7 @@ public class ChainController {
     public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
             @Valid @RequestBody ChainUpdateRequestDTO dto,
             @PathVariable Long chainId
-    ) {
+    ) throws IOException, InterruptedException {
         ChainUpdateResponseDTO result = chainService.changeChain(dto, chainId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
@@ -93,7 +94,7 @@ public class ChainController {
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> activateChain(
             @PathVariable Long chainId
-    ) {
+    ) throws IOException, InterruptedException {
         chainService.activateChain(chainId);
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }

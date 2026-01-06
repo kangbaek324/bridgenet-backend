@@ -10,7 +10,6 @@ import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
-import com.baekho.bridgenet.domain.chain.service.RpcService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.Protocol;
@@ -59,7 +58,8 @@ public class BlockchainService {
 
     private final Credentials credentials;
 
-    private boolean isRecover = true;
+    // @TODO RecoverService로 분리필요
+    private final Map<Long, Boolean> isRecoverMap;
 
     @PostConstruct
     public void init() throws IOException {
@@ -81,23 +81,31 @@ public class BlockchainService {
             Web3j httpWeb3 = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
             BigInteger nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
 
-            subscribeToContractEvents(bridge, chain, nowBlockNumber);
-
             try {
                 recoverEvent(chain, nowBlockNumber);
-
-                isRecover = false;
             } catch (Exception e) {
                 log.error("Recover Event Error: {}", e.getMessage(), e);
             }
+
+            subscribeToContractEvents(bridge, chain, nowBlockNumber);
         }
     }
 
+    // @TODO 큐 사용 불필요
+    /**
+     * 컨트랙트의 요청을 구독합니다.
+     * 항상 recoverEvent 실행 이후에 실행되어야합니다.
+     * @param bridge Bridge
+     * @param chain Chain
+     * @param nowBlockNumber nowBlockNumber
+     */
     public void subscribeToContractEvents(Bridge bridge, Chain chain, BigInteger nowBlockNumber) {
         Queue<Bridge.RequestedEventResponse> queue = new ArrayDeque<>();
+        Boolean isRecover = isRecoverMap.get(chain.getChainId());
+        if (isRecover == null) throw new IllegalStateException("isRecover값이 null입니다. recoverEvent 함수가 먼저 실행되어야합니다.");
 
         Disposable sub = bridge.requestedEventFlowable(
-                DefaultBlockParameter.valueOf(nowBlockNumber),
+                DefaultBlockParameter.valueOf(nowBlockNumber.add(BigInteger.valueOf(1))),
                 DefaultBlockParameterName.LATEST
         ).subscribe(
                 event -> {
@@ -122,11 +130,22 @@ public class BlockchainService {
         subMap.put(chain.getChainId(), sub);
     }
 
+    /*
+     * @TODO 등록시 블록체인에서 이미 처리된 요청인지 확인하는 로직 추가 필요
+     *  나중에 DB 날아갔을때 recover 함수를 실행시키면 미처리 요청으로 들어가기 때문
+     */
     /**
-     * * @TODO 등록시 블록체인에서 이미 처리된 요청인지 확인하는 로직 추가 필요
-     * * 나중에 DB 날아갔을때 recover 함수를 실행시키면 미처리 요청으로 들어가기 때문
-     **/
-    private void recoverEvent(Chain chain, BigInteger nowBlockNumber) throws IOException, InterruptedException {
+     *  체인별 요청 값을 복구합니다.
+     *  subscribeToContractEvents 함수 사용시 이 함수가 먼저 실행되어야합니다.
+     * @param chain Chain
+     * @param nowBlockNumber nowBlockNumber
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void recoverEvent(Chain chain, BigInteger nowBlockNumber) throws IOException, InterruptedException {
+        // 상태 저장
+        isRecoverMap.put(chain.getChainId(), true);
+
         BigInteger lastBlockNumber = chain.getLastBlockNumber();
 
         // 맨처음 복구를 시작한 블록
@@ -191,6 +210,9 @@ public class BlockchainService {
         long end = System.currentTimeMillis();
         log.info("---- Success Recover Requested Event ----");
         System.out.println("Time Taken: " + (end - start) + "ms");
+
+        // 상태 저장
+        isRecoverMap.put(chain.getChainId(), false);
     }
 
     private static void showPercentLog(

@@ -32,6 +32,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Convert;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +107,7 @@ public class ChainService {
     }
 
     // @TODO 중복 칼럼 예외 추가해야됨
-    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) {
+    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) throws IOException, InterruptedException {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
@@ -148,8 +149,7 @@ public class ChainService {
         return new ChainStatusResponseDTO(projection.getStatus());
     }
 
-    // @TODO 할성화시 이벤트 복구로직이 같이 작동하도록 해야됨
-    public void activateChain(Long chainId) {
+    public void activateChain(Long chainId) throws IOException, InterruptedException {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_ACTIVATE);
@@ -171,7 +171,7 @@ public class ChainService {
         chainRepository.save(chain);
     }
 
-    private void setupChainRuntime(Chain chain) {
+    private void setupChainRuntime(Chain chain) throws IOException, InterruptedException {
         Long chainId = chain.getChainId();
 
         // RPC 연결 HTTP
@@ -179,16 +179,7 @@ public class ChainService {
         if (rpcs.isEmpty()) throw new ChainException(ChainErrorCode.RPC_NOT_CONNECTED);
 
         for (Rpc rpc : rpcs) {
-            Web3j web3j = Web3j.build(new HttpService(rpc.getUrl()));
-
-            httpWeb3jMap
-                    .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
-                    .add(web3j);
-
-            Bridge bridge = blockchainService.createBridgeObject(chain, web3j);
-            bridgeMap
-                    .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())
-                    .add(bridge);
+            blockchainService.createHttpRpc(chain, rpc);
         }
 
         Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
@@ -201,6 +192,7 @@ public class ChainService {
             throw new BlockchainException(BlockchainErrorCode.ERROR);
         }
 
+        blockchainService.recoverEvent(chain, nowBlockNumber);
         blockchainService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
     }
 
