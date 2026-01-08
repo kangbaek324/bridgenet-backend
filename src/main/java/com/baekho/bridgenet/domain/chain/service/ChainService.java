@@ -80,7 +80,6 @@ public class ChainService {
         return new ChainListResponseDTO(chainGetDetailDTOS);
     }
 
-
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
         Optional<Chain> existing = chainRepository.findByChainId(dto.getChainId());
         if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_ID);
@@ -107,23 +106,16 @@ public class ChainService {
     }
 
     // @TODO 중복 칼럼 예외 추가해야됨
-    // @TODO 비활성후 정보를 변경하도록 변경하기
     public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) throws IOException, InterruptedException {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-
-        String beforeAddress = chain.getSmartContractAddress();
+        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         chain.setChainName(dto.getChainName());
         chain.setSmartContractAddress(dto.getSmartContractAddress());
         chain.setUnit(dto.getUnit());
 
         chainRepository.save(chain);
-
-        if (!beforeAddress.equals(chain.getSmartContractAddress())) {
-            deleteChainRuntime(chain);
-            setupChainRuntime(chain);
-        }
 
         return ChainUpdateResponseDTO
                 .builder()
@@ -138,6 +130,7 @@ public class ChainService {
     public void removeChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         chainRepository.delete(chain); // @TODO CASCADE 처리하기
         deActivateChain(chainId);
