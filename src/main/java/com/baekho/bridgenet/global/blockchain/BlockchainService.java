@@ -73,7 +73,9 @@ public class BlockchainService {
             for (Rpc rpc : rpcs) {
                 createHttpRpc(chain, rpc);
             }
+        }
 
+        for (Chain chain : chains) {
             // 누락 이벤트 복구 및 이벤트 리스너 등록
             Long chainId = chain.getChainId();
 
