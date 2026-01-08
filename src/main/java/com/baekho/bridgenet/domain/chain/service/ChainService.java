@@ -107,6 +107,7 @@ public class ChainService {
     }
 
     // @TODO 중복 칼럼 예외 추가해야됨
+    // @TODO 비활성후 정보를 변경하도록 변경하기
     public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) throws IOException, InterruptedException {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
