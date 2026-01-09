@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/bridge/chains")
+@RequestMapping("api/chains")
 public class ChainController {
     private final ChainService chainService;
 

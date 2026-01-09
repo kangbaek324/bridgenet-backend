@@ -14,6 +14,7 @@ import java.util.Optional;
 @Repository
 public interface RpcRepository extends JpaRepository<Rpc, Long> {
     List<Rpc> findAllByChainAndProtocol(Chain chain, Protocol protocol);
+    List<Rpc> findAllByChain(Chain chain);
 
     @Query("SELECT new com.baekho.bridgenet.domain.chain.dto.ChainCountDTO(r.chain.chainId, COUNT(r)) " +
             "FROM Rpc r " +

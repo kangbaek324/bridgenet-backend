@@ -2,7 +2,6 @@ package com.baekho.bridgenet.domain.chain.service;
 
 import com.baekho.bridgenet.domain.chain.dto.request.RpcAddRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.RpcUpdateRequestDTO;
-import com.baekho.bridgenet.domain.chain.dto.response.ChainRpcGroupDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcAddResponseDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcResponseDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcUpdateResponseDTO;
@@ -11,17 +10,16 @@ import com.baekho.bridgenet.domain.chain.entity.Rpc;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
 import com.baekho.bridgenet.global.blockchain.BlockchainService;
-import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.code.RpcErrorCode;
+import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.common.exception.RpcException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.http.HttpService;
 
 import java.util.*;
 
@@ -36,29 +34,31 @@ public class RpcService {
     private final Map<Long, List<Bridge>> bridgeMap;
     private final Map<Long, List<Web3j>> httpWeb3jMap;
 
-    public Map<Long, ChainRpcGroupDTO> getRpcs() {
-        List<Rpc> rpcsDB = rpcRepository.findAll();
-        Map<Long, ChainRpcGroupDTO> result = new TreeMap<>();
+    public List<RpcResponseDTO> getRpcs(Long chainId, Protocol protocol) {
+        Chain chain = chainRepository.findByChainId(chainId)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        List<Rpc> rpcsDB = new ArrayList<>();
+        if (protocol == null) {
+            rpcsDB = rpcRepository.findAllByChain(chain);
+        }
+        else {
+            rpcsDB = rpcRepository.findAllByChainAndProtocol(chain, protocol);
+        }
+
+        List<RpcResponseDTO> res = new ArrayList<>();
 
         rpcsDB.forEach(rpc -> {
-            Long chainId = rpc.getChain().getChainId();
-
-            result.computeIfAbsent(
-                    chainId,
-                    k -> new ChainRpcGroupDTO(
-                            rpc.getChain().getChainName(),
-                            new ArrayList<>()
-                    )
-            ).getRpcs().add(
-                    new RpcResponseDTO(
-                            rpc.getServiceName(),
-                            rpc.getUrl(),
-                            rpc.getProtocol()
-                    )
+            res.add(
+                new RpcResponseDTO(
+                    rpc.getServiceName(),
+                    rpc.getUrl(),
+                    rpc.getProtocol()
+                )
             );
         });
 
-        return result;
+        return res;
     }
 
     // @TODO 중복 칼럼 예외 처리해야됨
