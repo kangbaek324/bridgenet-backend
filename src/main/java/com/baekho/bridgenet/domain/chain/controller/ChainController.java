@@ -1,10 +1,11 @@
 package com.baekho.bridgenet.domain.chain.controller;
 
 import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.bridge.dto.request.AddContractBalanceRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.request.ChainAddRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.request.ChainUpdateRequestDTO;
+import com.baekho.bridgenet.domain.chain.dto.request.AddContractBalanceRequestDTO;
+import com.baekho.bridgenet.domain.chain.dto.request.ChainAddRequestDTO;
+import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
+import com.baekho.bridgenet.domain.chain.dto.response.*;
 import com.baekho.bridgenet.domain.chain.service.ChainService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,25 +17,36 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/bridge/chain")
+@RequestMapping("api/chains")
 public class ChainController {
     private final ChainService chainService;
 
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
-        ChainListResponseDTO result = chainService.getChainList();
+        ChainListResponseDTO result = chainService.getChainList(true);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
+    // @TODO Status도 반환되도록 수정 해야됨
+    @Operation(summary = "체인 리스트 조회 (비활성화 포함)", description = "서비스에서 제공하는 체인의 리스트를 조회합니다. (비활성화 포함)")
+    @GetMapping("all")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getAllChainList() {
+        ChainListResponseDTO result = chainService.getChainList(null);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
     @Operation(summary = "체인 추가", description = "새로운 체인을 추가합니다.")
-    @PostMapping("")
+    @PostMapping
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainAddResponseDTO>> addChain(
             @Valid @RequestBody ChainAddRequestDTO dto
@@ -49,7 +61,7 @@ public class ChainController {
     public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
             @Valid @RequestBody ChainUpdateRequestDTO dto,
             @PathVariable Long chainId
-    ) {
+    ) throws IOException, InterruptedException {
         ChainUpdateResponseDTO result = chainService.changeChain(dto, chainId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
@@ -66,6 +78,35 @@ public class ChainController {
         return ResponseEntity
                 .status(204)
                 .body(new SuccessResponse<>("", null));
+    }
+
+    @GetMapping("{chainId}/status")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<ChainStatusResponseDTO>> getChainStatus(
+            @PathVariable Long chainId
+    ) {
+        ChainStatusResponseDTO res = chainService.getChainStatus(chainId);
+        return ResponseEntity.ok(new SuccessResponse<>("", res));
+    }
+
+    @Operation(summary = "체인 활성화", description = "체인을 활성화 합니다.")
+    @PostMapping("{chainId}/activate")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<Void>> activateChain(
+            @PathVariable Long chainId
+    ) throws IOException, InterruptedException {
+        chainService.activateChain(chainId);
+        return ResponseEntity.ok(new SuccessResponse<>("", null));
+    }
+
+    @Operation(summary = "체인 비활성화", description = "체인을 비활성화 합니다.")
+    @PostMapping("{chainId}/deactivate")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<Void>> deActivateChain(
+            @PathVariable Long chainId
+    ) {
+        chainService.deActivateChain(chainId);
+        return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
     @Operation(summary = "체인 랭킹 조회", description = "자금 유입/유출순으로 랭킹을 조회합니다.")

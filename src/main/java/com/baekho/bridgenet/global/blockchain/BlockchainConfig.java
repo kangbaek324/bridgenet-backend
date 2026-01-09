@@ -12,17 +12,17 @@ import java.util.*;
 @Configuration
 @RequiredArgsConstructor
 public class BlockchainConfig {
-    private final Map<Long, Bridge> bridgeMap = new HashMap<>();
-    private final Map<Long, Web3j> httpWeb3jMap = new HashMap<>();
+    private final Map<Long, List<Bridge>> bridgeMap = new HashMap<>();
+    private final Map<Long, List<Web3j>> httpWeb3jMap = new HashMap<>();
     private final Map<Long, Disposable> subMap = new HashMap<>();
 
     @Bean
-    public Map<Long, Bridge> bridgeMap() {
+    public Map<Long, List<Bridge>> bridgeMap() {
         return bridgeMap;
     }
 
     @Bean
-    public Map<Long, Web3j> httpWeb3jMap() { return httpWeb3jMap; }
+    public Map<Long, List<Web3j>> httpWeb3jMap() { return httpWeb3jMap; }
 
     @Bean
     public Map<Long, Disposable> subMap() { return subMap; }

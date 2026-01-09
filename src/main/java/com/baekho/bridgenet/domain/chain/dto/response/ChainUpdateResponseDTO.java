@@ -1,4 +1,4 @@
-package com.baekho.bridgenet.domain.bridge.dto.response;
+package com.baekho.bridgenet.domain.chain.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -7,10 +7,10 @@ import java.math.BigInteger;
 
 @Getter
 @Builder
-public class ChainDetailApproveDTO {
+public class ChainUpdateResponseDTO {
     private Long chainId;
     private String chainName;
-    private BigInteger value;
+    private Boolean chainStatus;
+    private String smartContractAddress;
     private String unit;
-    private String transactionHash;
 }
