@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class RpcUpdateRequestDTO {
+    private Long id;
     private String serviceName;
     private String url;
     private Protocol protocol;

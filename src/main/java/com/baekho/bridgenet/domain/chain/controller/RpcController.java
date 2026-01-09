@@ -5,7 +5,7 @@ import com.baekho.bridgenet.domain.chain.dto.request.RpcUpdateRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcAddResponseDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcResponseDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcUpdateResponseDTO;
-import com.baekho.bridgenet.domain.chain.service.RpcService;
+import com.baekho.bridgenet.domain.chain.service.ChainRpcService;
 import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,42 +19,25 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/chains/{chainId}/rpcs")
 public class RpcController {
-    private final RpcService rpcService;
+    private final ChainRpcService chainRpcService;
 
     @GetMapping
     public ResponseEntity<SuccessResponse<List<RpcResponseDTO>>> getRpcs(
             @PathVariable Long chainId,
             @RequestParam(required = false) Protocol protocol
     ) {
-        List<RpcResponseDTO> res = rpcService.getRpcs(chainId, protocol);
+        List<RpcResponseDTO> res = chainRpcService.getRpcs(chainId, protocol);
 
         return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
 
     @PostMapping
+    @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<RpcAddResponseDTO>> addRpc(
             @RequestBody RpcAddRequestDTO dto,
             @PathVariable Long chainId
     ) {
-        RpcAddResponseDTO res = rpcService.addRpc(dto, chainId);
+        RpcAddResponseDTO res = chainRpcService.addRpc(dto, chainId);
         return ResponseEntity.ok(new SuccessResponse<>("", res));
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("@authService.isAdmin(principal)")
-    public ResponseEntity<SuccessResponse<RpcUpdateResponseDTO>> updateRpc(
-            @RequestBody RpcUpdateRequestDTO dto,
-            @PathVariable Long id
-    ) {
-        RpcUpdateResponseDTO res = rpcService.updateRpc(dto, id);
-        return ResponseEntity.ok(new SuccessResponse<>("", res));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<SuccessResponse<Void>> deleteRpc(
-            @PathVariable Long id
-    ) {
-        rpcService.deleteRpc(id);
-        return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 }
