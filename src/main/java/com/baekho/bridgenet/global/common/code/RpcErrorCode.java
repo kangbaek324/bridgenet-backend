@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum RpcErrorCode implements ErrorCode {
     RPC_NOT_FOUND(HttpStatus.NOT_FOUND, "RPC가 존재하지 않습니다."),
+    RPC_ALREADY_ADDED(HttpStatus.CONFLICT, "이미 존재하는 RPC 입니다."),
     INVALID_RPC(HttpStatus.SERVICE_UNAVAILABLE, "RPC 연결에 실패했습니다.");
 
     private final HttpStatus httpStatus;

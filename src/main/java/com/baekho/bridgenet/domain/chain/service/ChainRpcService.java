@@ -10,8 +10,10 @@ import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
 import com.baekho.bridgenet.global.blockchain.BlockchainService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.code.RpcErrorCode;
 import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.exception.ChainException;
+import com.baekho.bridgenet.global.common.exception.RpcException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,12 +60,14 @@ public class ChainRpcService {
         return res;
     }
 
-    // @TODO 중복 칼럼 예외 처리해야됨
     public RpcAddResponseDTO addRpc(RpcAddRequestDTO dto, Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+
+        Optional<Rpc> rpcOpt = rpcRepository.findByUrl(dto.getUrl());
+        if (rpcOpt.isPresent()) throw new RpcException(RpcErrorCode.RPC_ALREADY_ADDED);
 
         Rpc rpc = Rpc.builder()
                 .chain(chain)
