@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "chains")
@@ -50,4 +52,11 @@ public class Chain {
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @OneToMany(
+            mappedBy = "chain",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    private List<Rpc> rpcs = new ArrayList<>();
 }

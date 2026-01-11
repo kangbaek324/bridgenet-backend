@@ -325,8 +325,7 @@ public class BlockchainService {
     }
 
     public Bridge createBridgeObject(Chain chain, Web3j web3j) {
-        // @TODO
-        // 메서드와 약간 의미가 맞지 않는듯 수정 필요
+        // @TODO 메서드와 약간 의미가 맞지 않는듯 수정 필요
         TransactionManager txManager = new RawTransactionManager(
                 web3j,
                 credentials,

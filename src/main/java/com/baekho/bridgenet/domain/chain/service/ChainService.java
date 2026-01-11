@@ -42,10 +42,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class ChainService {
-    /**
-     *  * @TODO
-     *  * 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
-     */
+    // @TODO 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
     private final ChainRepository chainRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final BlockchainService blockchainService;
@@ -81,7 +78,7 @@ public class ChainService {
 
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
         Optional<Chain> existing = chainRepository.findByChainId(dto.getChainId());
-        if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_ID);
+        if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
 
         Chain chain = Chain.builder()
                 .chainId(dto.getChainId())
@@ -104,11 +101,16 @@ public class ChainService {
                 .build();
     }
 
-    // @TODO 중복 칼럼 예외 추가해야됨
     public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) throws IOException, InterruptedException {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+
+        String newSmartContractAddress = dto.getSmartContractAddress();
+
+        if (chainRepository.existsBySmartContractAddress(newSmartContractAddress)) {
+            throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
+        }
 
         chain.setChainName(dto.getChainName());
         chain.setSmartContractAddress(dto.getSmartContractAddress());
@@ -131,8 +133,8 @@ public class ChainService {
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
-        chainRepository.delete(chain); // @TODO CASCADE 처리하기
-        deActivateChain(chainId);
+        deleteChainRuntime(chain);
+        chainRepository.delete(chain);
     }
 
     public ChainStatusResponseDTO getChainStatus(Long chainId) {
@@ -194,7 +196,8 @@ public class ChainService {
 
         bridgeMap.remove(chainId);
         httpWeb3jMap.remove(chainId);
-        subMap.get(chainId).dispose();
+        Disposable event = subMap.get(chainId);
+        if (event != null) event.dispose();
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
