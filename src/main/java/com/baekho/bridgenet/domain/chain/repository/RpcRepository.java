@@ -21,4 +21,6 @@ public interface RpcRepository extends JpaRepository<Rpc, Long> {
             "FROM Rpc r " +
             "GROUP BY r.chain.chainId")
     List<ChainCountDTO> countByChainId();
+
+    int countByChain(Chain chain);
 }

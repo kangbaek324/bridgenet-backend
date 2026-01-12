@@ -28,4 +28,16 @@ public class ChainAddRequestDTO {
     @Schema(description = "컨트랙트가 생성된 블록 번호", example = "103221")
     @NotNull
     private BigInteger contractCreatedBlockNumber;
+
+    @Schema(description = "가스당 최대 지불 한도", example = "10000000")
+    @NotNull
+    private BigInteger maxFeePerGas;
+
+    @Schema(description = "가스당 최대 채굴자 팁 한도", example = "10000000")
+    @NotNull
+    private BigInteger maxPriorityFeePerGas;
+
+    @Schema(description = "가스 리밋", example = "10000000")
+    @NotNull
+    private BigInteger gasLimit;
 }

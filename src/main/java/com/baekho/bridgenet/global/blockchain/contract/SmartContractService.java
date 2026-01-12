@@ -10,8 +10,6 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.StaticEIP1559GasProvider;
 
-import java.math.BigInteger;
-
 @Service
 @AllArgsConstructor
 public class SmartContractService {
@@ -31,9 +29,9 @@ public class SmartContractService {
                 txManager,
                 new StaticEIP1559GasProvider(
                         chain.getChainId(),
-                        BigInteger.valueOf(50_000_000_000L),
-                        BigInteger.valueOf(25_000_000_000L),
-                        BigInteger.valueOf(150000)
+                        chain.getMaxFeePerGas(),
+                        chain.getMaxPriorityFeePerGas(),
+                        chain.getGasLimit()
                 )
         );
     }

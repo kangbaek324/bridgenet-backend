@@ -6,6 +6,7 @@ import com.baekho.bridgenet.domain.chain.dto.response.RpcUpdateResponseDTO;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.entity.Rpc;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
+import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
@@ -29,6 +30,8 @@ public class RpcService {
 
     private final Map<Long, List<Bridge>> bridgeMap;
     private final Map<Long, List<Web3j>> httpWeb3jMap;
+
+    private final RpcState rpcState;
 
     public RpcResponseDTO getRpc(Long id) {
         Rpc rpc = rpcRepository.findById(id)
