@@ -13,4 +13,7 @@ public class ChainUpdateResponseDTO {
     private Boolean chainStatus;
     private String smartContractAddress;
     private String unit;
+    private BigInteger maxFeePerGas;
+    private BigInteger maxPriorityFeePerGas;
+    private BigInteger gasLimit;
 }

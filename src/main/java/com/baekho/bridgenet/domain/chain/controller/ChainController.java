@@ -17,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -26,6 +25,8 @@ import java.util.List;
 @RequestMapping("api/chains")
 public class ChainController {
     private final ChainService chainService;
+
+    // @TODO 체인 상세 조회 필요
 
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping
@@ -58,11 +59,11 @@ public class ChainController {
     @Operation(summary = "체인 정보 변경", description = "체인의 정보를 변경합니다.")
     @PutMapping("{chainId}")
     @PreAuthorize("@authService.isAdmin(principal)")
-    public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
+    public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> updateChain(
             @Valid @RequestBody ChainUpdateRequestDTO dto,
             @PathVariable Long chainId
     ) {
-        ChainUpdateResponseDTO result = chainService.changeChain(dto, chainId);
+        ChainUpdateResponseDTO result = chainService.updateChain(dto, chainId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }

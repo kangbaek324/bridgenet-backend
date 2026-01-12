@@ -14,4 +14,7 @@ public class ChainAddResponseDTO {
     private String smartContractAddress;
     private BigInteger smartContractValue;
     private String unit;
+    private BigInteger maxFeePerGas;
+    private BigInteger maxPriorityFeePerGas;
+    private BigInteger gasLimit;
 }

@@ -15,7 +15,6 @@ import com.baekho.bridgenet.domain.chain.repository.projection.ChainStatusProjec
 import com.baekho.bridgenet.global.blockchain.BlockchainEventService;
 import com.baekho.bridgenet.global.blockchain.BlockchainRecoverService;
 import com.baekho.bridgenet.global.blockchain.RpcState;
-import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
@@ -33,7 +32,6 @@ import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Convert;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +50,6 @@ public class ChainService {
 
     private final BlockchainEventService blockchainEventService;
     private final BlockchainRecoverService blockchainRecoverService;
-    private final SmartContractService smartContractService;
     private final RpcService rpcService;
 
     private final Map<Long, List<Bridge>> bridgeMap;
@@ -108,19 +105,16 @@ public class ChainService {
                 .smartContractAddress(chain.getSmartContractAddress())
                 .smartContractValue(chain.getSmartContractValue())
                 .unit(chain.getUnit())
+                .maxFeePerGas(chain.getMaxFeePerGas())
+                .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
+                .gasLimit(chain.getGasLimit())
                 .build();
     }
 
-    public ChainUpdateResponseDTO changeChain(ChainUpdateRequestDTO dto, Long chainId) {
+    public ChainUpdateResponseDTO updateChain(ChainUpdateRequestDTO dto, Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
-
-        String newSmartContractAddress = dto.getSmartContractAddress();
-
-        if (chainRepository.existsBySmartContractAddress(newSmartContractAddress)) {
-            throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
-        }
 
         chain.setChainName(dto.getChainName());
         chain.setSmartContractAddress(dto.getSmartContractAddress());
@@ -138,6 +132,9 @@ public class ChainService {
                 .chainStatus(chain.isStatus())
                 .smartContractAddress(chain.getSmartContractAddress())
                 .unit(chain.getUnit())
+                .maxFeePerGas(chain.getMaxFeePerGas())
+                .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
+                .gasLimit(chain.getGasLimit())
                 .build();
     }
 
