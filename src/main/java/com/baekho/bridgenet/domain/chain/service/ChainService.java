@@ -12,8 +12,10 @@ import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
 import com.baekho.bridgenet.domain.chain.repository.projection.ChainStatusProjection;
-import com.baekho.bridgenet.global.blockchain.BlockchainService;
+import com.baekho.bridgenet.global.blockchain.BlockchainEventService;
+import com.baekho.bridgenet.global.blockchain.BlockchainRecoverService;
 import com.baekho.bridgenet.global.blockchain.RpcState;
+import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
@@ -45,9 +47,13 @@ public class ChainService {
     // @TODO 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
     private final ChainRepository chainRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
-    private final BlockchainService blockchainService;
     private final RpcRepository rpcRepository;
     private final RpcState rpcState;
+
+    private final BlockchainEventService blockchainEventService;
+    private final BlockchainRecoverService blockchainRecoverService;
+    private final SmartContractService smartContractService;
+    private final RpcService rpcService;
 
     private final Map<Long, List<Bridge>> bridgeMap;
     private final Map<Long, List<Web3j>> httpWeb3jMap;
@@ -174,7 +180,7 @@ public class ChainService {
         if (rpcs.isEmpty()) throw new ChainException(ChainErrorCode.RPC_NOT_CONNECTED);
 
         for (Rpc rpc : rpcs) {
-            blockchainService.createHttpRpc(chain, rpc);
+            rpcService.createHttpRpc(chain, rpc);
         }
 
         Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
@@ -187,8 +193,8 @@ public class ChainService {
             throw new BlockchainException(BlockchainErrorCode.ERROR);
         }
 
-        blockchainService.recoverEvent(chain, nowBlockNumber);
-        blockchainService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
+        blockchainRecoverService.recoverEvent(chain, nowBlockNumber);
+        blockchainEventService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
     }
 
     private void deleteChainRuntime(Chain chain) {
