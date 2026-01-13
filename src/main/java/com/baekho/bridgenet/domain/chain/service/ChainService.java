@@ -15,6 +15,7 @@ import com.baekho.bridgenet.domain.chain.repository.projection.ChainStatusProjec
 import com.baekho.bridgenet.global.blockchain.BlockchainEventService;
 import com.baekho.bridgenet.global.blockchain.BlockchainRecoverService;
 import com.baekho.bridgenet.global.blockchain.RpcState;
+import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
@@ -51,6 +52,7 @@ public class ChainService {
     private final BlockchainEventService blockchainEventService;
     private final BlockchainRecoverService blockchainRecoverService;
     private final RpcService rpcService;
+    private final SmartContractService smartContractService;
 
     private final Map<Long, List<Bridge>> bridgeMap;
     private final Map<Long, List<Web3j>> httpWeb3jMap;
@@ -83,6 +85,7 @@ public class ChainService {
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
         Optional<Chain> existing = chainRepository.findByChainId(dto.getChainId());
         if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
+        smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         Chain chain = Chain.builder()
                 .chainId(dto.getChainId())
@@ -115,6 +118,7 @@ public class ChainService {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+        smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         chain.setChainName(dto.getChainName());
         chain.setSmartContractAddress(dto.getSmartContractAddress());

@@ -10,6 +10,8 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.StaticEIP1559GasProvider;
 
+import java.math.BigInteger;
+
 @Service
 @AllArgsConstructor
 public class SmartContractService {
@@ -22,7 +24,6 @@ public class SmartContractService {
                 chain.getChainId()
         );
 
-        // @TODO 체인별 가스 저장 필요
         return Bridge.load(
                 chain.getSmartContractAddress(),
                 web3j,
@@ -34,5 +35,15 @@ public class SmartContractService {
                         chain.getGasLimit()
                 )
         );
+    }
+
+    public void validateGasSetting(
+            BigInteger maxFeePerGas,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger gasLimit
+    ) {
+        if (maxFeePerGas.compareTo(maxPriorityFeePerGas) < 0) {
+            throw new IllegalArgumentException("maxFeePerGas가 maxPriorityFeePerGas보다 커야합니다");
+        }
     }
 }
