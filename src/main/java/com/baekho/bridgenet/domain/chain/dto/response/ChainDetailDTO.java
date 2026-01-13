@@ -10,6 +10,7 @@ import java.math.BigInteger;
 public class ChainDetailDTO {
     private Long chainId;
     private String chainName;
+    private Boolean chainStatus;
     private String smartContractAddress;
     private BigInteger smartContractValue;
     private String unit;

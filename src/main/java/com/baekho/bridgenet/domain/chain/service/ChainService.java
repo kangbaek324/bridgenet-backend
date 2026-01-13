@@ -61,16 +61,14 @@ public class ChainService {
     public ChainListResponseDTO getChainList(Boolean status) {
         List<Chain> chains;
 
-        if (status == null) {
-            chains = chainRepository.findAll();
-        } else {
-            chains = chainRepository.findAllByStatus(status);
-        }
+        if (status == null) chains = chainRepository.findAll();
+        else chains = chainRepository.findAllByStatus(true);
 
         List<ChainDetailDTO> chainGetDetailDTOS = chains.stream()
                 .map(chain -> ChainDetailDTO.builder()
                         .chainId(chain.getChainId())
                         .chainName(chain.getChainName())
+                        .chainStatus(chain.isStatus())
                         .smartContractAddress(chain.getSmartContractAddress())
                         .smartContractValue(chain.getSmartContractValue())
                         .unit(chain.getUnit())

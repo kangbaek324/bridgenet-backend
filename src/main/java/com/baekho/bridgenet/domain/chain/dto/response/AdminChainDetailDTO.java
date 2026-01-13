@@ -13,7 +13,7 @@ public class AdminChainDetailDTO {
     private String smartContractAddress;
     private BigInteger smartContractValue;
     private String unit;
-    private boolean status;
+    private Boolean status;
     private BigInteger maxFeePerGas;
     private BigInteger maxPriorityFeePerGas;
     private BigInteger gasLimit;
