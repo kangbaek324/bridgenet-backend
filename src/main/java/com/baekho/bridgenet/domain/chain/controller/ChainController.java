@@ -17,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -26,6 +25,8 @@ import java.util.List;
 @RequestMapping("api/chains")
 public class ChainController {
     private final ChainService chainService;
+
+    // @TODO 체인 상세 조회 필요
 
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping
@@ -58,11 +59,11 @@ public class ChainController {
     @Operation(summary = "체인 정보 변경", description = "체인의 정보를 변경합니다.")
     @PutMapping("{chainId}")
     @PreAuthorize("@authService.isAdmin(principal)")
-    public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> changeChain(
+    public ResponseEntity<SuccessResponse<ChainUpdateResponseDTO>> updateChain(
             @Valid @RequestBody ChainUpdateRequestDTO dto,
             @PathVariable Long chainId
-    ) throws IOException, InterruptedException {
-        ChainUpdateResponseDTO result = chainService.changeChain(dto, chainId);
+    ) {
+        ChainUpdateResponseDTO result = chainService.updateChain(dto, chainId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
@@ -89,16 +90,18 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
 
+    // @TODO 비동기로 변경 후 조회 API 제공
     @Operation(summary = "체인 활성화", description = "체인을 활성화 합니다.")
     @PostMapping("{chainId}/activate")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> activateChain(
             @PathVariable Long chainId
-    ) throws IOException, InterruptedException {
+    ) {
         chainService.activateChain(chainId);
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
+    // @TODO 비동기로 변경 후 조회 API 제공
     @Operation(summary = "체인 비활성화", description = "체인을 비활성화 합니다.")
     @PostMapping("{chainId}/deactivate")
     @PreAuthorize("@authService.isAdmin(principal)")
@@ -144,7 +147,7 @@ public class ChainController {
     @PostMapping("{chainId}/contract/whitelist")
     public ResponseEntity<SuccessResponse<WhiteListResponseDTO>> setWhiteList(
             @PathVariable Long chainId
-    ) throws Exception {
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Users user = (Users) authentication.getPrincipal();
 

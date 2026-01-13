@@ -24,17 +24,26 @@ public class SmartContractService {
                 chain.getChainId()
         );
 
-        // @TODO 체인별 가스 저장 필요
         return Bridge.load(
                 chain.getSmartContractAddress(),
                 web3j,
                 txManager,
                 new StaticEIP1559GasProvider(
                         chain.getChainId(),
-                        BigInteger.valueOf(50_000_000_000L),
-                        BigInteger.valueOf(25_000_000_000L),
-                        BigInteger.valueOf(150000)
+                        chain.getMaxFeePerGas(),
+                        chain.getMaxPriorityFeePerGas(),
+                        chain.getGasLimit()
                 )
         );
+    }
+
+    public void validateGasSetting(
+            BigInteger maxFeePerGas,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger gasLimit
+    ) {
+        if (maxFeePerGas.compareTo(maxPriorityFeePerGas) < 0) {
+            throw new IllegalArgumentException("maxFeePerGas가 maxPriorityFeePerGas보다 커야합니다");
+        }
     }
 }

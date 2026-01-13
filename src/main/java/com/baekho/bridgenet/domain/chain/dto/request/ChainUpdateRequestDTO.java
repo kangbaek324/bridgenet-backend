@@ -1,6 +1,7 @@
 package com.baekho.bridgenet.domain.chain.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -22,4 +23,19 @@ public class ChainUpdateRequestDTO {
     @Schema(description = "네이티브 토큰 단위", example = "ETH")
     @NotBlank
     private String unit;
+
+    @Schema(description = "가스당 최대 지불 한도", example = "10000000")
+    @Min(0)
+    @NotNull
+    private BigInteger maxFeePerGas;
+
+    @Schema(description = "가스당 최대 채굴자 팁 한도", example = "10000000")
+    @Min(0)
+    @NotNull
+    private BigInteger maxPriorityFeePerGas;
+
+    @Schema(description = "가스 리밋", example = "10000000")
+    @Min(21000)
+    @NotNull
+    private BigInteger gasLimit;
 }

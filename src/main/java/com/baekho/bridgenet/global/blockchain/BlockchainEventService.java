@@ -11,6 +11,7 @@ import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
+import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,7 @@ public class BlockchainEventService {
                 },
                 error -> {
                     log.error("[Chain: {}] Requested 이벤트 구독 에러: {}", chain.getChainName(), error.getMessage());
+                    throw new IllegalStateException(error);
                 }
         );
 

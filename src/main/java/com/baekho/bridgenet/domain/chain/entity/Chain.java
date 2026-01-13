@@ -53,10 +53,20 @@ public class Chain {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(name = "max_fee_per_gas", nullable = false)
+    private BigInteger maxFeePerGas;
+
+    @Column(name = "max_priority_fee_per_gas", nullable = false)
+    private BigInteger maxPriorityFeePerGas;
+
+    @Column(name = "gas_limit", nullable = false)
+    private BigInteger gasLimit;
+
     @OneToMany(
             mappedBy = "chain",
             cascade = CascadeType.REMOVE,
             orphanRemoval = true
     )
+    @Builder.Default
     private List<Rpc> rpcs = new ArrayList<>();
 }
