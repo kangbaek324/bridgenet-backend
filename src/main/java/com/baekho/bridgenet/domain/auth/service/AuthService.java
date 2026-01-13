@@ -213,4 +213,9 @@ public class AuthService {
     public boolean isAdmin(Users user) {
         return user.getRole() == Role.ADMIN;
     }
+
+    public Users getUserByUserId(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.NOT_FOUND_USER));
+    }
 }

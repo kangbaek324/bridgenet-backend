@@ -27,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -62,15 +63,17 @@ public class BridgeService {
         exchangeRequestOptionRepository.save(option);
     }
 
-    // @TODO getExchangeHistory 함수 합치기
-    public Page<BridgeHistoryResponseDTO> getExchangeAllHistory(
+    public Page<BridgeHistoryResponseDTO> getExchangeHistory(
             String sortType,
             int size,
             int page,
             Long chainId,
             String direction,
-            String status
+            String status,
+            Users user
     ) {
+        if (direction == null) direction = "";
+
         Specification<ExchangeRequest> spec = Specification.unrestricted();
         Sort sort = switch (sortType) {
             case "latest" -> Sort.by(Sort.Direction.DESC, "createdAt");
@@ -108,6 +111,8 @@ public class BridgeService {
             spec = spec.and(ExchangeRequestSpecification.hasStatus(statusType));
         }
 
+        spec = spec.and(ExchangeRequestSpecification.withUser(user)); // 유저 조건 추가
+
         Page<ExchangeRequest> exchangeRequestPage = exchangeRequestRepository.findAll(spec, pageable);
 
         return exchangeRequestPage.map(exchangeRequest -> {
@@ -142,66 +147,6 @@ public class BridgeService {
                     .createdAt(exchangeRequest.getCreatedAt())
                     .build();
         });
-    }
-
-    public List<BridgeHistoryResponseDTO> getExchangeHistory(Users user, String status) {
-        List<ExchangeRequest> DB;
-
-        if (status == null) {
-            DB = exchangeRequestRepository.findAllByUser(user);
-        }
-        else {
-            RequestStatus statusType = null;
-            status = status.toLowerCase();
-
-            statusType = switch (status) {
-                case "approve" -> RequestStatus.APPROVE;
-                case "reject" -> RequestStatus.REJECT;
-                case "pending" -> RequestStatus.PENDING;
-                default -> throw new IllegalArgumentException();
-            };
-
-            DB = exchangeRequestRepository.findAllByApproveStatus(statusType);
-        }
-
-        List<BridgeHistoryResponseDTO> result = new ArrayList<>();
-
-        for (ExchangeRequest exchangeRequest : DB) {
-            Chain toChain = exchangeRequest.getToChain();
-            Chain fromChain = exchangeRequest.getFromChain();
-
-            ChainDetailBridgeHistoryDTO from = ChainDetailBridgeHistoryDTO
-                    .builder()
-                    .chainId(fromChain.getChainId())
-                    .chainName(fromChain.getChainName())
-                    .value(exchangeRequest.getFromValue())
-                    .unit(fromChain.getUnit())
-                    .transactionHash(exchangeRequest.getFromTransactionHash())
-                    .build();
-
-            ChainDetailBridgeHistoryDTO to = ChainDetailBridgeHistoryDTO
-                    .builder()
-                    .chainId(toChain.getChainId())
-                    .chainName(toChain.getChainName())
-                    .value(exchangeRequest.getToValue())
-                    .unit(toChain.getUnit())
-                    .transactionHash(exchangeRequest.getToTransactionHash())
-                    .build();
-
-            result.add(
-                BridgeHistoryResponseDTO
-                        .builder()
-                        .id(exchangeRequest.getId())
-                        .from(from)
-                        .to(to)
-                        .status(exchangeRequest.getApproveStatus())
-                        .exchangedAt(exchangeRequest.getApprovedAt())
-                        .createdAt(exchangeRequest.getCreatedAt())
-                        .build()
-            );
-        }
-
-        return result;
     }
 
     @Transactional
