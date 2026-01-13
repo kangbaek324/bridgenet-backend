@@ -44,8 +44,7 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
-    // @TODO 체인 상세 조회 필요
-    @Operation(summary = "체인 리스트 조회", description = "체인을 상세하게 조회합니다")
+    @Operation(summary = "체인 조회", description = "체인을 상세하게 조회합니다")
     @GetMapping("{chainId}")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<AdminChainDetailDTO>> getChain(
