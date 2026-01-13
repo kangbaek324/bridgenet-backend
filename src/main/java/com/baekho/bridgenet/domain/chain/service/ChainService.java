@@ -81,10 +81,13 @@ public class ChainService {
         return new ChainListResponseDTO(chainGetDetailDTOS);
     }
 
-    // @TODO 중복칼럼 처리 해야됨
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
-        Optional<Chain> existing = chainRepository.findByChainId(dto.getChainId());
-        if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
+        // 중복 검사
+        boolean existingChainId = chainRepository.existsByChainId(dto.getChainId());
+        boolean existingChainName = chainRepository.existsByChainName(dto.getChainName());
+        if (existingChainId) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
+        else if (existingChainName) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_NAME);
+
         smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         Chain chain = Chain.builder()
@@ -117,6 +120,13 @@ public class ChainService {
     public ChainUpdateResponseDTO updateChain(ChainUpdateRequestDTO dto, Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        // 이미 존재하는 이름인지 검사
+        if (!chain.getChainName().equals(dto.getChainName())) {
+            boolean existingChainName = chainRepository.existsByChainName(dto.getChainName());
+            if (existingChainName) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_NAME);
+        }
+
         if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
         smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 

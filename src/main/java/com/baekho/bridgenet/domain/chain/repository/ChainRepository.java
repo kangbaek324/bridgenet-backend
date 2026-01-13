@@ -11,6 +11,8 @@ import java.util.Optional;
 @Repository
 public interface ChainRepository extends JpaRepository<Chain, Long> {
     Optional<Chain> findByChainId(Long ChainId);
+    boolean existsByChainId(Long id);
+    boolean existsByChainName(String chainName);
     List<Chain> findAllByStatus(Boolean status);
     boolean existsBySmartContractAddress(String smartContractAddress);
     Optional<ChainStatusProjection> findStatusByChainId(Long chainId);
