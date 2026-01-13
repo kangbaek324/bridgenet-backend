@@ -26,8 +26,6 @@ import java.util.List;
 public class ChainController {
     private final ChainService chainService;
 
-    // @TODO 체인 상세 조회 필요
-
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
@@ -42,6 +40,18 @@ public class ChainController {
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getAllChainList() {
         ChainListResponseDTO result = chainService.getChainList(null);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
+    // @TODO 체인 상세 조회 필요
+    @Operation(summary = "체인 리스트 조회", description = "체인을 상세하게 조회합니다")
+    @GetMapping("{chainId}")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<AdminChainDetailDTO>> getChain(
+            @PathVariable Long chainId
+    ) {
+        AdminChainDetailDTO result = chainService.getChain(chainId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }

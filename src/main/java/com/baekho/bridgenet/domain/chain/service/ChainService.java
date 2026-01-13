@@ -81,6 +81,23 @@ public class ChainService {
         return new ChainListResponseDTO(chainGetDetailDTOS);
     }
 
+    public AdminChainDetailDTO getChain(Long chainId) {
+        Chain chain = chainRepository.findByChainId(chainId)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        return AdminChainDetailDTO.builder()
+                .chainId(chain.getChainId())
+                .chainName(chain.getChainName())
+                .smartContractAddress(chain.getSmartContractAddress())
+                .smartContractValue(chain.getSmartContractValue())
+                .unit(chain.getUnit())
+                .status(chain.isStatus())
+                .maxFeePerGas(chain.getMaxFeePerGas())
+                .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
+                .gasLimit(chain.getGasLimit())
+                .build();
+    }
+
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
         // 중복 검사
         boolean existingChainId = chainRepository.existsByChainId(dto.getChainId());
