@@ -39,6 +39,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -183,16 +184,15 @@ public class ChainService {
         return new ChainStatusResponseDTO(projection.getStatus());
     }
 
-    @Async
     public void activateChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
         if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_ACTIVATE);
 
-        setupChainRuntime(chain);
+        List<Rpc> rpcs = rpcRepository.findAllByChainAndProtocol(chain, Protocol.HTTP);
+        if (rpcs.isEmpty()) throw new ChainException(ChainErrorCode.RPC_NOT_CONNECTED);
 
-        chain.setStatus(ChainStatus.ACTIVATE);
-        chainRepository.save(chain);
+        setupChainRuntime(chain, rpcs);
     }
 
     public void deActivateChain(Long chainId) {
@@ -201,67 +201,94 @@ public class ChainService {
         if (chain.getStatus() == ChainStatus.DEACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_DEACTIVATE);
 
         deleteChainRuntime(chain);
+    }
+
+    @Async
+    public CompletableFuture<Void> setupChainRuntime(Chain chain, List<Rpc> rpcs) {
+        return CompletableFuture.runAsync(() -> {
+            chain.setStatus(ChainStatus.PROCESSING);
+            chainRepository.save(chain);
+
+            try {
+                Long chainId = chain.getChainId();
+
+                int rpcNumber = 0;
+                for (Rpc rpc : rpcs) {
+                    rpcService.createHttpRpc(chain, rpc);
+                    rpcNumber++;
+                }
+
+                rpcState.setRpcNumber(chainId, rpcNumber);
+
+                Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
+                Web3j httpWeb3 = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
+                BigInteger nowBlockNumber;
+
+                try {
+                    nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
+                } catch (Exception e) {
+                    log.error("Get BlockNumber Error: {}", e.getMessage(), e);
+                    throw new BlockchainException(BlockchainErrorCode.ERROR);
+                }
+
+                try {
+                    blockchainRecoverService.recoverEvent(chain, nowBlockNumber);
+                } catch (Exception e) {
+                    log.error("Recover Event Error: {}", e.getMessage(), e);
+                }
+
+                // Recover 작업이 빨리 끝나 미래 -> 과거 이벤트를 구독하는 오류를 해결하기 위해
+                // nowBlockNumber 다음 블록이 나올때까지 대기 하는 코드
+                BigInteger checkBlockNumber;
+                do {
+                    try {
+                        checkBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                        log.error("Get BlockNumber Error: {}", e.getMessage(), e);
+                        throw new BlockchainException(BlockchainErrorCode.ERROR);
+                    }
+                } while (nowBlockNumber.compareTo(checkBlockNumber) >= 0);
+
+                blockchainEventService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
+            } catch (Exception e) {
+                log.error("SetupChainRuntime Error: {}", e.getMessage(), e);
+                chain.setStatus(ChainStatus.ERROR);
+                chainRepository.save(chain);
+
+                throw e;
+            }
+
+            chain.setStatus(ChainStatus.ACTIVATE);
+            chainRepository.save(chain);
+        });
+    }
+
+    @Async
+    public void deleteChainRuntime(Chain chain) {
+        chain.setStatus(ChainStatus.PROCESSING);
+        chainRepository.save(chain);
+
+        try {
+            Long chainId = chain.getChainId();
+
+            bridgeMap.remove(chainId);
+            httpWeb3jMap.remove(chainId);
+
+            Disposable event = subMap.get(chainId);
+            if (event != null) event.dispose();
+
+        } catch (Exception e) {
+            log.error("DeleteChainRuntime Error: {}", e.getMessage(), e);
+
+            chain.setStatus(ChainStatus.ERROR);
+            chainRepository.save(chain);
+
+            throw e;
+        }
 
         chain.setStatus(ChainStatus.DEACTIVATE);
         chainRepository.save(chain);
-    }
-
-    public void setupChainRuntime(Chain chain) {
-        Long chainId = chain.getChainId();
-
-        // RPC 연결 HTTP
-        List<Rpc> rpcs = rpcRepository.findAllByChainAndProtocol(chain, Protocol.HTTP);
-        if (rpcs.isEmpty()) throw new ChainException(ChainErrorCode.RPC_NOT_CONNECTED);
-
-        int rpcNumber = 0;
-        for (Rpc rpc : rpcs) {
-            rpcService.createHttpRpc(chain, rpc);
-            rpcNumber++;
-        }
-
-        rpcState.setRpcNumber(chainId, rpcNumber);
-
-        Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
-        Web3j httpWeb3 = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
-        BigInteger nowBlockNumber;
-
-        try {
-            nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
-        } catch (Exception e) {
-            log.error("Get BlockNumber Error: {}", e.getMessage(), e);
-            throw new BlockchainException(BlockchainErrorCode.ERROR);
-        }
-
-        try {
-            blockchainRecoverService.recoverEvent(chain, nowBlockNumber);
-        } catch (Exception e) {
-            log.error("Recover Event Error: {}", e.getMessage(), e);
-        }
-
-        // Recover 작업이 빨리 끝나 미래 -> 과거 이벤트를 구독하는 오류를 해결하기 위해
-        // nowBlockNumber 다음 블록이 나올때까지 대기 하는 코드
-        BigInteger checkBlockNumber;
-        do {
-            try {
-                checkBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
-                Thread.sleep(1000);
-            } catch (Exception e) {
-                log.error("Get BlockNumber Error: {}", e.getMessage(), e);
-                throw new BlockchainException(BlockchainErrorCode.ERROR);
-            }
-        } while (nowBlockNumber.compareTo(checkBlockNumber) >= 0);
-
-        blockchainEventService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
-    }
-
-    public void deleteChainRuntime(Chain chain) {
-        Long chainId = chain.getChainId();
-
-        bridgeMap.remove(chainId);
-        httpWeb3jMap.remove(chainId);
-
-        Disposable event = subMap.get(chainId);
-        if (event != null) event.dispose();
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {

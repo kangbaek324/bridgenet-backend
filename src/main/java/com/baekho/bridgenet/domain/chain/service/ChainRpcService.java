@@ -7,7 +7,6 @@ import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.entity.Rpc;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.chain.repository.RpcRepository;
-import com.baekho.bridgenet.global.blockchain.BlockchainService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.code.RpcErrorCode;
@@ -28,10 +27,6 @@ import java.util.*;
 public class ChainRpcService {
     private final RpcRepository rpcRepository;
     private final ChainRepository chainRepository;
-    private final BlockchainService blockchainService;
-
-    private final Map<Long, List<Bridge>> bridgeMap;
-    private final Map<Long, List<Web3j>> httpWeb3jMap;
 
     public List<RpcResponseDTO> getRpcs(Long chainId, Protocol protocol) {
         Chain chain = chainRepository.findByChainId(chainId)
