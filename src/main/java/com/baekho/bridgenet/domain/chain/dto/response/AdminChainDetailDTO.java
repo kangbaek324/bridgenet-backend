@@ -8,13 +8,13 @@ import java.math.BigInteger;
 
 @Getter
 @Builder
-public class ChainAddResponseDTO {
+public class AdminChainDetailDTO {
     private Long chainId;
     private String chainName;
-    private ChainStatus chainStatus;
     private String smartContractAddress;
     private BigInteger smartContractValue;
     private String unit;
+    private ChainStatus status;
     private BigInteger maxFeePerGas;
     private BigInteger maxPriorityFeePerGas;
     private BigInteger gasLimit;

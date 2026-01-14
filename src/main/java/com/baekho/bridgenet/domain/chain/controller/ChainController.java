@@ -26,8 +26,6 @@ import java.util.List;
 public class ChainController {
     private final ChainService chainService;
 
-    // @TODO 체인 상세 조회 필요
-
     @Operation(summary = "체인 리스트 조회", description = "서비스에서 제공하는 체인의 리스트를 조회합니다.")
     @GetMapping
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getChainList() {
@@ -36,12 +34,22 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
-    // @TODO Status도 반환되도록 수정 해야됨
-    @Operation(summary = "체인 리스트 조회 (비활성화 포함)", description = "서비스에서 제공하는 체인의 리스트를 조회합니다. (비활성화 포함)")
+    @Operation(summary = "체인 리스트 조회 (비활성화 포함, 어드민)", description = "서비스에서 제공하는 체인의 리스트를 조회합니다. (비활성화 포함)")
     @GetMapping("all")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainListResponseDTO>> getAllChainList() {
         ChainListResponseDTO result = chainService.getChainList(null);
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
+    @Operation(summary = "체인 조회", description = "체인을 상세하게 조회합니다")
+    @GetMapping("{chainId}")
+    @PreAuthorize("@authService.isAdmin(principal)")
+    public ResponseEntity<SuccessResponse<AdminChainDetailDTO>> getChain(
+            @PathVariable Long chainId
+    ) {
+        AdminChainDetailDTO result = chainService.getChain(chainId);
 
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
@@ -90,7 +98,6 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
 
-    // @TODO 비동기로 변경 후 조회 API 제공
     @Operation(summary = "체인 활성화", description = "체인을 활성화 합니다.")
     @PostMapping("{chainId}/activate")
     @PreAuthorize("@authService.isAdmin(principal)")
@@ -101,7 +108,6 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
-    // @TODO 비동기로 변경 후 조회 API 제공
     @Operation(summary = "체인 비활성화", description = "체인을 비활성화 합니다.")
     @PostMapping("{chainId}/deactivate")
     @PreAuthorize("@authService.isAdmin(principal)")

@@ -48,6 +48,7 @@ public class ExchangeRequest {
     @Column(name = "to_value", nullable = false)
     private BigInteger toValue;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "approve_status")
     private RequestStatus approveStatus;
 

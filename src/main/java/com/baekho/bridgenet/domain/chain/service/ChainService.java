@@ -19,6 +19,7 @@ import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
@@ -26,6 +27,7 @@ import com.baekho.bridgenet.global.common.exception.ChainException;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -37,7 +39,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -61,16 +63,14 @@ public class ChainService {
     public ChainListResponseDTO getChainList(Boolean status) {
         List<Chain> chains;
 
-        if (status == null) {
-            chains = chainRepository.findAll();
-        } else {
-            chains = chainRepository.findAllByStatus(status);
-        }
+        if (status == null) chains = chainRepository.findAll();
+        else chains = chainRepository.findAllByStatus(ChainStatus.ACTIVATE);
 
         List<ChainDetailDTO> chainGetDetailDTOS = chains.stream()
                 .map(chain -> ChainDetailDTO.builder()
                         .chainId(chain.getChainId())
                         .chainName(chain.getChainName())
+                        .chainStatus(chain.getStatus())
                         .smartContractAddress(chain.getSmartContractAddress())
                         .smartContractValue(chain.getSmartContractValue())
                         .unit(chain.getUnit())
@@ -81,10 +81,30 @@ public class ChainService {
         return new ChainListResponseDTO(chainGetDetailDTOS);
     }
 
-    // @TODO 중복칼럼 처리 해야됨
+    public AdminChainDetailDTO getChain(Long chainId) {
+        Chain chain = chainRepository.findByChainId(chainId)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        return AdminChainDetailDTO.builder()
+                .chainId(chain.getChainId())
+                .chainName(chain.getChainName())
+                .smartContractAddress(chain.getSmartContractAddress())
+                .smartContractValue(chain.getSmartContractValue())
+                .unit(chain.getUnit())
+                .status(chain.getStatus())
+                .maxFeePerGas(chain.getMaxFeePerGas())
+                .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
+                .gasLimit(chain.getGasLimit())
+                .build();
+    }
+
     public ChainAddResponseDTO addChain(ChainAddRequestDTO dto) {
-        Optional<Chain> existing = chainRepository.findByChainId(dto.getChainId());
-        if (existing.isPresent()) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
+        // 중복 검사
+        boolean existingChainId = chainRepository.existsByChainId(dto.getChainId());
+        boolean existingChainName = chainRepository.existsByChainName(dto.getChainName());
+        if (existingChainId) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
+        else if (existingChainName) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_NAME);
+
         smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         Chain chain = Chain.builder()
@@ -104,7 +124,7 @@ public class ChainService {
                 .builder()
                 .chainId(chain.getChainId())
                 .chainName(chain.getChainName())
-                .chainStatus(chain.isStatus())
+                .chainStatus(chain.getStatus())
                 .smartContractAddress(chain.getSmartContractAddress())
                 .smartContractValue(chain.getSmartContractValue())
                 .unit(chain.getUnit())
@@ -117,7 +137,14 @@ public class ChainService {
     public ChainUpdateResponseDTO updateChain(ChainUpdateRequestDTO dto, Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+
+        // 이미 존재하는 이름인지 검사
+        if (!chain.getChainName().equals(dto.getChainName())) {
+            boolean existingChainName = chainRepository.existsByChainName(dto.getChainName());
+            if (existingChainName) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_NAME);
+        }
+
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
         smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         chain.setChainName(dto.getChainName());
@@ -133,7 +160,7 @@ public class ChainService {
                 .builder()
                 .chainId(chain.getChainId())
                 .chainName(chain.getChainName())
-                .chainStatus(chain.isStatus())
+                .chainStatus(chain.getStatus())
                 .smartContractAddress(chain.getSmartContractAddress())
                 .unit(chain.getUnit())
                 .maxFeePerGas(chain.getMaxFeePerGas())
@@ -145,7 +172,7 @@ public class ChainService {
     public void removeChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         chainRepository.delete(chain);
     }
@@ -160,81 +187,108 @@ public class ChainService {
     public void activateChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_ACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_ACTIVATE);
 
-        setupChainRuntime(chain);
+        List<Rpc> rpcs = rpcRepository.findAllByChainAndProtocol(chain, Protocol.HTTP);
+        if (rpcs.isEmpty()) throw new ChainException(ChainErrorCode.RPC_NOT_CONNECTED);
 
-        chain.setStatus(true);
-        chainRepository.save(chain);
+        setupChainRuntime(chain, rpcs);
     }
 
     public void deActivateChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        if (!chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.DEACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_DEACTIVATE);
 
         deleteChainRuntime(chain);
-
-        chain.setStatus(false);
-        chainRepository.save(chain);
     }
 
-    public void setupChainRuntime(Chain chain) {
-        Long chainId = chain.getChainId();
+    @Async
+    public CompletableFuture<Void> setupChainRuntime(Chain chain, List<Rpc> rpcs) {
+        return CompletableFuture.runAsync(() -> {
+            chain.setStatus(ChainStatus.PROCESSING);
+            chainRepository.save(chain);
 
-        // RPC 연결 HTTP
-        List<Rpc> rpcs = rpcRepository.findAllByChainAndProtocol(chain, Protocol.HTTP);
-        if (rpcs.isEmpty()) throw new ChainException(ChainErrorCode.RPC_NOT_CONNECTED);
-
-        int rpcNumber = 0;
-        for (Rpc rpc : rpcs) {
-            rpcService.createHttpRpc(chain, rpc);
-            rpcNumber++;
-        }
-
-        rpcState.setRpcNumber(chainId, rpcNumber);
-
-        Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
-        Web3j httpWeb3 = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
-        BigInteger nowBlockNumber;
-
-        try {
-            nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
-        } catch (Exception e) {
-            log.error("Get BlockNumber Error: {}", e.getMessage(), e);
-            throw new BlockchainException(BlockchainErrorCode.ERROR);
-        }
-
-        try {
-            blockchainRecoverService.recoverEvent(chain, nowBlockNumber);
-        } catch (Exception e) {
-            log.error("Recover Event Error: {}", e.getMessage(), e);
-        }
-
-        // Recover 작업이 빨리 끝나 미래 -> 과거 이벤트를 구독하는 오류를 해결하기 위해
-        // nowBlockNumber 다음 블록이 나올때까지 대기 하는 코드
-        BigInteger checkBlockNumber;
-        do {
             try {
-                checkBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
-                Thread.sleep(1000);
-            } catch (Exception e) {
-                log.error("Get BlockNumber Error: {}", e.getMessage(), e);
-                throw new BlockchainException(BlockchainErrorCode.ERROR);
-            }
-        } while (nowBlockNumber.compareTo(checkBlockNumber) >= 0);
+                Long chainId = chain.getChainId();
 
-        blockchainEventService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
+                int rpcNumber = 0;
+                for (Rpc rpc : rpcs) {
+                    rpcService.createHttpRpc(chain, rpc);
+                    rpcNumber++;
+                }
+
+                rpcState.setRpcNumber(chainId, rpcNumber);
+
+                Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
+                Web3j httpWeb3 = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
+                BigInteger nowBlockNumber;
+
+                try {
+                    nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
+                } catch (Exception e) {
+                    log.error("Get BlockNumber Error: {}", e.getMessage(), e);
+                    throw new BlockchainException(BlockchainErrorCode.ERROR);
+                }
+
+                try {
+                    blockchainRecoverService.recoverEvent(chain, nowBlockNumber);
+                } catch (Exception e) {
+                    log.error("Recover Event Error: {}", e.getMessage(), e);
+                }
+
+                // Recover 작업이 빨리 끝나 미래 -> 과거 이벤트를 구독하는 오류를 해결하기 위해
+                // nowBlockNumber 다음 블록이 나올때까지 대기 하는 코드
+                BigInteger checkBlockNumber;
+                do {
+                    try {
+                        checkBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                        log.error("Get BlockNumber Error: {}", e.getMessage(), e);
+                        throw new BlockchainException(BlockchainErrorCode.ERROR);
+                    }
+                } while (nowBlockNumber.compareTo(checkBlockNumber) >= 0);
+
+                blockchainEventService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
+            } catch (Exception e) {
+                log.error("SetupChainRuntime Error: {}", e.getMessage(), e);
+                chain.setStatus(ChainStatus.ERROR);
+                chainRepository.save(chain);
+
+                throw e;
+            }
+
+            chain.setStatus(ChainStatus.ACTIVATE);
+            chainRepository.save(chain);
+        });
     }
 
+    @Async
     public void deleteChainRuntime(Chain chain) {
-        Long chainId = chain.getChainId();
+        chain.setStatus(ChainStatus.PROCESSING);
+        chainRepository.save(chain);
 
-        bridgeMap.remove(chainId);
-        httpWeb3jMap.remove(chainId);
+        try {
+            Long chainId = chain.getChainId();
 
-        Disposable event = subMap.get(chainId);
-        if (event != null) event.dispose();
+            bridgeMap.remove(chainId);
+            httpWeb3jMap.remove(chainId);
+
+            Disposable event = subMap.get(chainId);
+            if (event != null) event.dispose();
+
+        } catch (Exception e) {
+            log.error("DeleteChainRuntime Error: {}", e.getMessage(), e);
+
+            chain.setStatus(ChainStatus.ERROR);
+            chainRepository.save(chain);
+
+            throw e;
+        }
+
+        chain.setStatus(ChainStatus.DEACTIVATE);
+        chainRepository.save(chain);
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
