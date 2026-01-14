@@ -98,7 +98,6 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
 
-    // @TODO 비동기로 변경 후 조회 API 제공
     @Operation(summary = "체인 활성화", description = "체인을 활성화 합니다.")
     @PostMapping("{chainId}/activate")
     @PreAuthorize("@authService.isAdmin(principal)")
@@ -109,7 +108,6 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
-    // @TODO 비동기로 변경 후 조회 API 제공
     @Operation(summary = "체인 비활성화", description = "체인을 비활성화 합니다.")
     @PostMapping("{chainId}/deactivate")
     @PreAuthorize("@authService.isAdmin(principal)")

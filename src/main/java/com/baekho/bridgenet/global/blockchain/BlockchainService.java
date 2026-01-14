@@ -3,6 +3,7 @@ package com.baekho.bridgenet.global.blockchain;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.domain.chain.service.ChainService;
+import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ public class BlockchainService {
 
     @PostConstruct
     public void init() {
-        List<Chain> chains = chainRepository.findAllByStatus(true);
+        List<Chain> chains = chainRepository.findAllByStatus(ChainStatus.ACTIVATE);
 
         for (Chain chain : chains) {
             chainService.setupChainRuntime(chain);

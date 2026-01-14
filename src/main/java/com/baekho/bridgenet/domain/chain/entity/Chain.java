@@ -1,5 +1,6 @@
 package com.baekho.bridgenet.domain.chain.entity;
 
+import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,8 +40,9 @@ public class Chain {
     private String unit;
 
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean status = false;
+    private ChainStatus status = ChainStatus.DEACTIVATE;
 
     @Column(name = "last_block_number", nullable = false)
     private BigInteger lastBlockNumber;

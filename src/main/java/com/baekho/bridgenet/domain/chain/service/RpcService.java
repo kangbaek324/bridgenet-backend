@@ -11,6 +11,7 @@ import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.code.RpcErrorCode;
+import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.common.exception.RpcException;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class RpcService {
                 .orElseThrow(() -> new RpcException(RpcErrorCode.RPC_NOT_FOUND));
 
         Chain chain = rpc.getChain();
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         rpc.setServiceName(dto.getServiceName());
         rpc.setUrl(dto.getUrl());
@@ -71,7 +72,7 @@ public class RpcService {
                 .orElseThrow(() -> new RpcException(RpcErrorCode.RPC_NOT_FOUND));
 
         Chain chain = rpc.getChain();
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         rpcRepository.delete(rpc);
     }

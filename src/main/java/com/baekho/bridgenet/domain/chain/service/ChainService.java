@@ -19,6 +19,7 @@ import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
@@ -26,6 +27,7 @@ import com.baekho.bridgenet.global.common.exception.ChainException;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -37,7 +39,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,13 +63,13 @@ public class ChainService {
         List<Chain> chains;
 
         if (status == null) chains = chainRepository.findAll();
-        else chains = chainRepository.findAllByStatus(true);
+        else chains = chainRepository.findAllByStatus(ChainStatus.ACTIVATE);
 
         List<ChainDetailDTO> chainGetDetailDTOS = chains.stream()
                 .map(chain -> ChainDetailDTO.builder()
                         .chainId(chain.getChainId())
                         .chainName(chain.getChainName())
-                        .chainStatus(chain.isStatus())
+                        .chainStatus(chain.getStatus())
                         .smartContractAddress(chain.getSmartContractAddress())
                         .smartContractValue(chain.getSmartContractValue())
                         .unit(chain.getUnit())
@@ -89,7 +90,7 @@ public class ChainService {
                 .smartContractAddress(chain.getSmartContractAddress())
                 .smartContractValue(chain.getSmartContractValue())
                 .unit(chain.getUnit())
-                .status(chain.isStatus())
+                .status(chain.getStatus())
                 .maxFeePerGas(chain.getMaxFeePerGas())
                 .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
                 .gasLimit(chain.getGasLimit())
@@ -122,7 +123,7 @@ public class ChainService {
                 .builder()
                 .chainId(chain.getChainId())
                 .chainName(chain.getChainName())
-                .chainStatus(chain.isStatus())
+                .chainStatus(chain.getStatus())
                 .smartContractAddress(chain.getSmartContractAddress())
                 .smartContractValue(chain.getSmartContractValue())
                 .unit(chain.getUnit())
@@ -142,7 +143,7 @@ public class ChainService {
             if (existingChainName) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_NAME);
         }
 
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
         smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         chain.setChainName(dto.getChainName());
@@ -158,7 +159,7 @@ public class ChainService {
                 .builder()
                 .chainId(chain.getChainId())
                 .chainName(chain.getChainName())
-                .chainStatus(chain.isStatus())
+                .chainStatus(chain.getStatus())
                 .smartContractAddress(chain.getSmartContractAddress())
                 .unit(chain.getUnit())
                 .maxFeePerGas(chain.getMaxFeePerGas())
@@ -170,7 +171,7 @@ public class ChainService {
     public void removeChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         chainRepository.delete(chain);
     }
@@ -182,25 +183,26 @@ public class ChainService {
         return new ChainStatusResponseDTO(projection.getStatus());
     }
 
+    @Async
     public void activateChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_ACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_ACTIVATE);
 
         setupChainRuntime(chain);
 
-        chain.setStatus(true);
+        chain.setStatus(ChainStatus.ACTIVATE);
         chainRepository.save(chain);
     }
 
     public void deActivateChain(Long chainId) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-        if (!chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.DEACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_ALREADY_DEACTIVATE);
 
         deleteChainRuntime(chain);
 
-        chain.setStatus(false);
+        chain.setStatus(ChainStatus.DEACTIVATE);
         chainRepository.save(chain);
     }
 

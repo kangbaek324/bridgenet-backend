@@ -1,5 +1,6 @@
 package com.baekho.bridgenet.domain.chain.dto.response;
 
+import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,7 +14,7 @@ public class AdminChainDetailDTO {
     private String smartContractAddress;
     private BigInteger smartContractValue;
     private String unit;
-    private Boolean status;
+    private ChainStatus status;
     private BigInteger maxFeePerGas;
     private BigInteger maxPriorityFeePerGas;
     private BigInteger gasLimit;

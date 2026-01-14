@@ -11,6 +11,7 @@ import com.baekho.bridgenet.global.blockchain.BlockchainService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.code.RpcErrorCode;
+import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.common.exception.RpcException;
@@ -64,7 +65,7 @@ public class ChainRpcService {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
-        if (chain.isStatus()) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
+        if (chain.getStatus() == ChainStatus.ACTIVATE) throw new ChainException(ChainErrorCode.CHAIN_MUST_DEACTIVATE);
 
         Optional<Rpc> rpcOpt = rpcRepository.findByUrl(dto.getUrl());
         if (rpcOpt.isPresent()) throw new RpcException(RpcErrorCode.RPC_ALREADY_ADDED);
