@@ -36,7 +36,7 @@ public class Chain {
     @Column(name = "smart_contract_value", nullable = false)
     private BigInteger smartContractValue = BigInteger.valueOf(0);
 
-    @Column(name = "unit")
+    @Column(name = "unit", nullable = false, unique = true)
     private String unit;
 
     @Builder.Default
@@ -63,6 +63,9 @@ public class Chain {
 
     @Column(name = "gas_limit", nullable = false)
     private BigInteger gasLimit;
+
+    @Column(name = "required_confirmations", nullable = false)
+    private BigInteger requiredConfirmations;
 
     @OneToMany(
             mappedBy = "chain",

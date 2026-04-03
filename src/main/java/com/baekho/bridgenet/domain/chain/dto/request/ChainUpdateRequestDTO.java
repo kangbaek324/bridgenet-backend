@@ -38,4 +38,8 @@ public class ChainUpdateRequestDTO {
     @Min(21000)
     @NotNull
     private BigInteger gasLimit;
+
+    @NotNull
+    @Min(1)
+    private BigInteger requiredConfirmations;
 }

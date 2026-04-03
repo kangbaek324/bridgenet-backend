@@ -17,4 +17,5 @@ public class ChainUpdateResponseDTO {
     private BigInteger maxFeePerGas;
     private BigInteger maxPriorityFeePerGas;
     private BigInteger gasLimit;
+    private BigInteger requiredConfirmations;
 }

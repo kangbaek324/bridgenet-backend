@@ -95,6 +95,7 @@ public class ChainService {
                 .maxFeePerGas(chain.getMaxFeePerGas())
                 .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
                 .gasLimit(chain.getGasLimit())
+                .requiredConfirmations(chain.getRequiredConfirmations())
                 .build();
     }
 
@@ -105,6 +106,7 @@ public class ChainService {
         if (existingChainId) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
         else if (existingChainName) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_NAME);
 
+        // gas값 유효성 검사
         smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         Chain chain = Chain.builder()
@@ -116,6 +118,7 @@ public class ChainService {
                 .maxFeePerGas(dto.getMaxFeePerGas())
                 .maxPriorityFeePerGas(dto.getMaxPriorityFeePerGas())
                 .gasLimit(dto.getGasLimit())
+                .requiredConfirmations(dto.getRequiredConfirmations())
                 .build();
 
         chainRepository.save(chain);
@@ -131,6 +134,7 @@ public class ChainService {
                 .maxFeePerGas(chain.getMaxFeePerGas())
                 .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
                 .gasLimit(chain.getGasLimit())
+                .requiredConfirmations(chain.getRequiredConfirmations())
                 .build();
     }
 
@@ -153,6 +157,7 @@ public class ChainService {
         chain.setMaxFeePerGas(dto.getMaxFeePerGas());
         chain.setMaxPriorityFeePerGas(dto.getMaxPriorityFeePerGas());
         chain.setGasLimit(dto.getGasLimit());
+        chain.setRequiredConfirmations(dto.getRequiredConfirmations());
 
         chainRepository.save(chain);
 
@@ -166,6 +171,7 @@ public class ChainService {
                 .maxFeePerGas(chain.getMaxFeePerGas())
                 .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
                 .gasLimit(chain.getGasLimit())
+                .requiredConfirmations(chain.getRequiredConfirmations())
                 .build();
     }
 
