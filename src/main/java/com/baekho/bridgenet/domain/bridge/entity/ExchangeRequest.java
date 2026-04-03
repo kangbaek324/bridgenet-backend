@@ -52,12 +52,6 @@ public class ExchangeRequest {
     @Column(name = "approve_status")
     private RequestStatus approveStatus;
 
-    @Column(name = "to_transaction_hash")
-    private String toTransactionHash;
-
-    @Column(name = "from_transaction_hash", nullable = false)
-    private String fromTransactionHash;
-
     @ManyToOne()
     @JoinColumn(name = "approve_user_id")
     private Users approveUser;

@@ -82,6 +82,7 @@ public class BlockchainEventService {
             Chain fromChain = chainRepository.findByChainId(request.fromChainId.longValue())
                     .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
+            // 브릿징 요청 설정이 없을 경우 생성
             ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
                     .orElseGet(() -> {
                         return ExchangeRequestOption.builder()
@@ -91,6 +92,7 @@ public class BlockchainEventService {
                                 .build();
                     });
 
+            // 요청 레코드 생성
             ExchangeRequest.ExchangeRequestBuilder build = ExchangeRequest.builder()
                     .idInSmartContract(request.id)
                     .toChain(toChain)
@@ -105,23 +107,23 @@ public class BlockchainEventService {
                 String transactionHash = null;
                 boolean isBlockchainError = false;
 
-                try {
-                    TransactionReceipt receipt = bridge.triggerPayout(user.getAddress(), request.fromValue).send();
-                    transactionHash = receipt.getTransactionHash();
-                } catch (Exception e) {
-                    log.error("[SYSTEM PROCESSING] Trigger Payout Error: {}", e.getMessage(), e);
-                    isBlockchainError = true;
-                }
-
-                // 자동처리 중 오류 발생시 수동옵션으로 등록
-                if (isBlockchainError) {
-                    build.approveStatus(RequestStatus.PENDING);
-                }
-                else {
-                    build.approveStatus(RequestStatus.APPROVE);
-                    build.toTransactionHash(transactionHash);
-                    build.approvedAt(LocalDateTime.now());
-                }
+                // TODO: 처리 방식 변경하기
+//                try {
+//                    TransactionReceipt receipt = bridge.triggerPayout(user.getAddress(), request.fromValue).send();
+//                    transactionHash = receipt.getTransactionHash();
+//                } catch (Exception e) {
+//                    log.error("[SYSTEM PROCESSING] Trigger Payout Error: {}", e.getMessage(), e);
+//                    isBlockchainError = true;
+//                }
+//                // 자동처리 중 오류 발생시 수동옵션으로 등록
+//                if (isBlockchainError) {
+//                    build.approveStatus(RequestStatus.PENDING);
+//                }
+//                else {
+//                    build.approveStatus(RequestStatus.APPROVE);
+//                    build.toTransactionHash(transactionHash);
+//                    build.approvedAt(LocalDateTime.now());
+//                }
             }
             else {
                 build.approveStatus(RequestStatus.PENDING);
