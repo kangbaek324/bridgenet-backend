@@ -52,7 +52,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/bridge/chain").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bridge/chain/*/contract/balance").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/bridge/chain/ranking").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/chains/ranking").permitAll()
 
                         // Swagger
                         .requestMatchers(

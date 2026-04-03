@@ -36,7 +36,7 @@ public class BlockchainRecoverService {
      *  나중에 DB 날아갔을때 recover 함수를 실행시키면 미처리 요청으로 들어가기 때문
      */
     /**
-     *  체인별 요청 값을 복구합니다.
+     *      *  체인별 요청 값을 복구합니다.
      *  subscribeToContractEvents 함수 사용시 이 함수가 먼저 실행되어야합니다.
      * @param chain Chain
      * @param nowBlockNumber nowBlockNumber

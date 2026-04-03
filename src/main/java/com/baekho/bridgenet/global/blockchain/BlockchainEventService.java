@@ -11,7 +11,6 @@ import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
-import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
