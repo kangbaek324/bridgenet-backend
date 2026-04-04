@@ -134,6 +134,7 @@ public class BridgeService {
 //        });
 //    }
 
+    @Transactional
     public void setRequest(ExchangeApproveRequestDTO dto, Long id, Users user) {
         ExchangeRequest request = exchangeRequestRepository.findById(id)
                 .orElseThrow(()-> new BridgeException(BridgeErrorCode.REQUEST_NOT_FOUND));

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.Transaction;
 
@@ -33,6 +34,7 @@ public class ReqTxMonitor {
     private final RpcState rpcState;
 
     @Scheduled(fixedDelay = 1000 * 60) // 1분
+    @Transactional
     public void reqTxMonitor() {
         if (httpWeb3jMap.isEmpty()) return;
 
@@ -81,9 +83,7 @@ public class ReqTxMonitor {
                     bridgeTransactionRepository.save(tx);
                     exchangeRequestRepository.save(exReq);
                 }
-
             }
-
         }
     }
 }
