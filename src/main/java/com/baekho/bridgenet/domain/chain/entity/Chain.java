@@ -65,7 +65,7 @@ public class Chain {
     private BigInteger gasLimit;
 
     @Column(name = "required_confirmations", nullable = false)
-    private BigInteger requiredConfirmations;
+    private Integer requiredConfirmations;
 
     @OneToMany(
             mappedBy = "chain",

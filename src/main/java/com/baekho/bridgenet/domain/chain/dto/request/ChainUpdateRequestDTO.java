@@ -41,5 +41,5 @@ public class ChainUpdateRequestDTO {
 
     @NotNull
     @Min(1)
-    private BigInteger requiredConfirmations;
+    private Integer requiredConfirmations;
 }
