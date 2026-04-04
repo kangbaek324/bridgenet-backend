@@ -43,7 +43,7 @@ public class BridgeTransaction {
     private TransactionStatus status;
 
     @Column(name = "processed_block")
-    private BigInteger ProcessedBlock;
+    private BigInteger processedBlock;
 
     @Column(name = "created_at")
     @CreationTimestamp

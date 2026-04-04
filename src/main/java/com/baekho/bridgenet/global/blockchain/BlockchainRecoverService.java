@@ -90,7 +90,7 @@ public class BlockchainRecoverService {
                 Log bcLog = (Log) logResult.get();
                 Bridge.RequestedEventResponse e = Bridge.getRequestedEventFromLog(bcLog);
 
-                blockchainEventService.saveRequest(e, e.log.getTransactionHash());
+                blockchainEventService.saveRequest(e);
             }
 
             if (isFinish) {
@@ -101,7 +101,7 @@ public class BlockchainRecoverService {
                 finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue));
 
                 // RPC 429 (To many Request) 해결
-                Thread.sleep(200);
+                Thread.sleep(1000);
             }
         }
 
