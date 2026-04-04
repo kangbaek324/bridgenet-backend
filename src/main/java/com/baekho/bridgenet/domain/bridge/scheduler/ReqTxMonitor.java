@@ -1,10 +1,13 @@
 package com.baekho.bridgenet.domain.bridge.scheduler;
 
 import com.baekho.bridgenet.domain.bridge.entity.BridgeTransaction;
+import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.repository.BridgeTransactionRepository;
+import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.global.blockchain.RpcState;
+import com.baekho.bridgenet.global.common.enums.BridgeStatus;
 import com.baekho.bridgenet.global.common.enums.TransactionStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,7 @@ import java.util.Optional;
 public class ReqTxMonitor {
     private final ChainRepository chainRepository;
     private final BridgeTransactionRepository bridgeTransactionRepository;
+    private final ExchangeRequestRepository exchangeRequestRepository;
 
     private final Map<Long, List<Web3j>> httpWeb3jMap;
     private final RpcState rpcState;
@@ -53,6 +57,10 @@ public class ReqTxMonitor {
                 List<BridgeTransaction> txs = bridgeTransactionRepository.findConfirmedByChainAndType(chain, confirmedBlock);
 
                 for (BridgeTransaction tx : txs) {
+                    Optional<ExchangeRequest> exReqOpt = exchangeRequestRepository.findById(tx.getExchangeRequest().getId());
+                    if (exReqOpt.isEmpty()) continue;
+                    ExchangeRequest exReq = exReqOpt.get();
+
                     Optional<Transaction> txOpt;
 
                     try {
@@ -64,11 +72,14 @@ public class ReqTxMonitor {
 
                     if (txOpt.isPresent()) {
                         tx.setStatus(TransactionStatus.CONFIRMED);
+                        exReq.setBridgeStatus(BridgeStatus.IN_PROGRESS);
                     } else {
                         tx.setStatus(TransactionStatus.DROPPED);
+                        exReq.setBridgeStatus(BridgeStatus.FAILED);
                     }
 
                     bridgeTransactionRepository.save(tx);
+                    exchangeRequestRepository.save(exReq);
                 }
 
             }

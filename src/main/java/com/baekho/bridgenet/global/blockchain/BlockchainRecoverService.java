@@ -68,14 +68,14 @@ public class BlockchainRecoverService {
             Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
             Web3j httpWeb3 = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
 
-            showPercentLog(chain, recoverStartBlock, nowBlockNumber, finishBlockNumber);
-
             if (finishBlockNumber.compareTo(nowBlockNumber) > 0) {
                 finishBlockNumber = nowBlockNumber;
                 isFinish = true;
 
                 System.out.println("\n");
             }
+
+            showPercentLog(chain, recoverStartBlock, nowBlockNumber, finishBlockNumber);
 
             EthFilter filter = new EthFilter(
                     DefaultBlockParameter.valueOf(startBlockNumber),
