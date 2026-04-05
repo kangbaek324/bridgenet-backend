@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.bridge.entity;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -27,5 +27,5 @@ public class ExchangeRequestOption {
 
     @OneToOne
     @JoinColumn(name = "updated_user_id", nullable = false)
-    private Users updatedUser;
+    private User updatedUser;
 }

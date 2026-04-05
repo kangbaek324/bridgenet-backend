@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.bridge.controller;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.auth.service.AuthService;
 import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
@@ -29,7 +29,7 @@ public class BridgeController {
             @Valid @RequestBody RequestOptionSetRequestDTO dto
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Users user = (Users) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
         bridgeService.setRequestOptionStatus(dto, user);
 
@@ -44,7 +44,7 @@ public class BridgeController {
             @Valid @RequestBody ExchangeApproveRequestDTO dto
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Users user = (Users) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
         bridgeService.setRequest(dto, id, user);
         return ResponseEntity.ok(new SuccessResponse<>("", null));

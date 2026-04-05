@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.chain.service;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.chain.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
@@ -367,7 +367,7 @@ public class ChainService {
         }
     }
 
-    public WhiteListResponseDTO setWhiteList(Long chainId, Users user) {
+    public WhiteListResponseDTO setWhiteList(Long chainId, User user) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 

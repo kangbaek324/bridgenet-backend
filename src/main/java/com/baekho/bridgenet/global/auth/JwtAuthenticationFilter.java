@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.global.auth;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (tokenProvider.validateToken(token)) {
                 String userId = tokenProvider.getUserId(token);
-                Users user = userRepository.findById(Long.parseLong(userId))
+                User user = userRepository.findById(Long.parseLong(userId))
                         .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다." + userId));
 
                 UsernamePasswordAuthenticationToken authentication =

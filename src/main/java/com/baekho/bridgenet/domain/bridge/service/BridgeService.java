@@ -1,9 +1,8 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
-import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
@@ -32,7 +31,7 @@ public class BridgeService {
 
     private final Map<Long, List<Bridge>> bridgeMap;
 
-    public void setRequestOptionStatus(RequestOptionSetRequestDTO dto, Users user) {
+    public void setRequestOptionStatus(RequestOptionSetRequestDTO dto, User user) {
         ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
                 .orElseGet(() -> {
                     return ExchangeRequestOption.builder()
@@ -135,7 +134,7 @@ public class BridgeService {
 //    }
 
     @Transactional
-    public void setRequest(ExchangeApproveRequestDTO dto, Long id, Users user) {
+    public void setRequest(ExchangeApproveRequestDTO dto, Long id, User user) {
         ExchangeRequest request = exchangeRequestRepository.findById(id)
                 .orElseThrow(()-> new BridgeException(BridgeErrorCode.REQUEST_NOT_FOUND));
 

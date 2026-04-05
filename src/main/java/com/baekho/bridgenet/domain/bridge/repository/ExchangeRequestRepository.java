@@ -1,7 +1,8 @@
 package com.baekho.bridgenet.domain.bridge.repository;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
+import com.baekho.bridgenet.global.common.enums.BridgeStatus;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -13,7 +14,18 @@ import java.util.List;
 
 @Repository
 public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest, Long>, JpaSpecificationExecutor<ExchangeRequest> {
-    List<ExchangeRequest> findAllByUser(Users users);
+    List<ExchangeRequest> findAllByUser(User users);
+
+    @Query("""
+        SELECT e FROM ExchangeRequest e
+        WHERE e.bridgeStatus = 'IN_PROGRESS'
+        AND e.approveStatus = 'APPROVE'
+        AND NOT EXISTS (
+            SELECT t FROM BridgeTransaction t
+            WHERE t.exchangeRequest = e AND t.type = 'TO'
+        )
+    """)
+    List<ExchangeRequest> findPendingRelayRequests();
     List<ExchangeRequest> findAllByApproveStatus(RequestStatus status);
 
     @Query("""

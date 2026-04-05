@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.global.blockchain;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.auth.repository.UserRepository;
 import com.baekho.bridgenet.domain.bridge.entity.BridgeTransaction;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
@@ -78,11 +78,11 @@ public class BlockchainEventService {
         String txHash = e.log.getTransactionHash();
         BigInteger blockNumber = e.log.getBlockNumber();
 
-        Optional<Users> userOpt = userRepository.findByAddress(e.requestedBy);
+        Optional<User> userOpt = userRepository.findByAddress(e.requestedBy);
         Optional<Chain> chainOpt = chainRepository.findByChainId(request.fromChainId.longValue());
 
         if (userOpt.isPresent() && chainOpt.isPresent()) {
-            Users user = userOpt.get();
+            User user = userOpt.get();
             Chain chain = chainOpt.get();
 
             Chain toChain = chainRepository.findByChainId(request.toChainId.longValue())

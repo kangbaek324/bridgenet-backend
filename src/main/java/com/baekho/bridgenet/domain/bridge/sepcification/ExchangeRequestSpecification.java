@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.bridge.sepcification;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,7 +26,7 @@ public interface ExchangeRequestSpecification {
         return (root, query, cb) -> cb.equal(root.get("approveStatus"), status);
     }
 
-    public static Specification<ExchangeRequest> withUser(Users user) {
+    public static Specification<ExchangeRequest> withUser(User user) {
         return (root, query, cb) -> {
             if (user == null) return cb.conjunction();
             return cb.equal(root.get("user"), user);

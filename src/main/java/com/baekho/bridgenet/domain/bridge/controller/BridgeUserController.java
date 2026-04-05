@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.bridge.controller;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.auth.service.AuthService;
 import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryResponseDTO;
 import com.baekho.bridgenet.domain.bridge.service.BridgeService;

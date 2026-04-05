@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.bridge.entity;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.global.common.enums.BridgeStatus;
 import com.baekho.bridgenet.global.common.enums.RequestStatus;
@@ -33,7 +33,7 @@ public class ExchangeRequest {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
     @ManyToOne()
     @JoinColumn(name = "from_chain_id", nullable = false)
@@ -59,7 +59,7 @@ public class ExchangeRequest {
 
     @ManyToOne()
     @JoinColumn(name = "approve_user_id")
-    private Users approveUser;
+    private User approveUser;
 
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
