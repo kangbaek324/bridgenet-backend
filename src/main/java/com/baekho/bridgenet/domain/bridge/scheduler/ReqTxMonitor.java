@@ -19,6 +19,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.Transaction;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +35,7 @@ public class ReqTxMonitor {
     private final Map<Long, List<Web3j>> httpWeb3jMap;
     private final RpcState rpcState;
 
+    // TODO: 트랜잭션안에서 블록체인 조회 코드를 분리하기
     @Scheduled(fixedDelay = 1000 * 60) // 1분
     @Transactional
     public void reqTxMonitor() {
@@ -60,6 +62,9 @@ public class ReqTxMonitor {
                 BigInteger confirmedBlock = nowBlockNumber.subtract(BigInteger.valueOf(chain.getRequiredConfirmations()));
                 List<BridgeTransaction> txs = bridgeTransactionRepository.findConfirmedByChainAndType(chain, confirmedBlock, TransactionType.FROM);
 
+                List<BridgeTransaction> updateTxList = new ArrayList<>();
+                List<ExchangeRequest> updateExReqList = new ArrayList<>();
+
                 for (BridgeTransaction tx : txs) {
                     ExchangeRequest exReq = tx.getExchangeRequest();
 
@@ -82,9 +87,12 @@ public class ReqTxMonitor {
                         exReq.setBridgeStatus(BridgeStatus.FAILED);
                     }
 
-                    bridgeTransactionRepository.save(tx);
-                    exchangeRequestRepository.save(exReq);
+                    updateTxList.add(tx);
+                    updateExReqList.add(exReq);
                 }
+
+                bridgeTransactionRepository.saveAll(updateTxList);
+                exchangeRequestRepository.saveAll(updateExReqList);
             }
         }
     }

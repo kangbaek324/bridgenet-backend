@@ -39,8 +39,10 @@ public class ResTxMonitor {
     private final Map<Long, List<Bridge>> bridgeMap;
     private final RpcState rpcState;
 
+    // TODO: 트랜잭션안에서 블록체인 조회 코드를 분리하기
     // resTx 처리 스케쥴러
     @Scheduled(fixedDelay = 1000 * 60)
+    @Transactional
     public void resTxProcessor() {
         if (bridgeMap.isEmpty()) return;
 
@@ -51,7 +53,10 @@ public class ResTxMonitor {
         for (ExchangeRequest exReq : targets) {
             Chain chain = exReq.getToChain();
             User user = exReq.getUser();
-            Bridge bridge = bridgeMap.get(chain.getChainId()).get(rpcState.rpcCount(chain.getChainId()));
+
+            List<Bridge> bridgeList = bridgeMap.get(chain.getChainId());
+            if (bridgeList == null || bridgeList.isEmpty()) continue;
+            Bridge bridge = bridgeList.get(rpcState.rpcCount(chain.getChainId()));
 
             // 자산 전송
             TransactionReceipt receipt = null;
@@ -76,6 +81,7 @@ public class ResTxMonitor {
         bridgeTransactionRepository.saveAll(txList);
     }
 
+    // TODO: 트랜잭션안에서 블록체인 조회 코드를 분리하기
     // resTx 추적 스케쥴러
     @Scheduled(fixedDelay = 1000 * 60)
     @Transactional
@@ -103,6 +109,9 @@ public class ResTxMonitor {
                 BigInteger confirmedBlock = nowBlockNumber.subtract(BigInteger.valueOf(chain.getRequiredConfirmations()));
                 List<BridgeTransaction> txs = bridgeTransactionRepository.findConfirmedByChainAndType(chain, confirmedBlock, TransactionType.TO);
 
+                List<BridgeTransaction> updateTxList = new ArrayList<>();
+                List<ExchangeRequest> updateExReqList = new ArrayList<>();
+
                 for (BridgeTransaction tx : txs) {
                     ExchangeRequest exReq = tx.getExchangeRequest();
 
@@ -118,8 +127,7 @@ public class ResTxMonitor {
                         // 트랜잭션이 존재한다면 완료 처리
                         tx.setStatus(TransactionStatus.CONFIRMED);
                         exReq.setBridgeStatus(BridgeStatus.COMPLETED);
-                    }
-                    else {
+                    } else {
                         // 존재 하지 않는다면 드랍 처리
                         tx.setStatus(TransactionStatus.DROPPED);
                         int count = bridgeTransactionRepository.countByExchangeRequestAndStatus(exReq, TransactionStatus.DROPPED);
@@ -131,9 +139,12 @@ public class ResTxMonitor {
                         }
                     }
 
-                    exchangeRequestRepository.save(exReq);
-                    bridgeTransactionRepository.save(tx);
+                    updateTxList.add(tx);
+                    updateExReqList.add(exReq);
                 }
+
+                bridgeTransactionRepository.saveAll(updateTxList);
+                exchangeRequestRepository.saveAll(updateExReqList);
             }
         }
     }
