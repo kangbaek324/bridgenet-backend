@@ -5,6 +5,7 @@ import com.baekho.bridgenet.domain.auth.service.AuthService;
 import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.RequestHistoryResponse;
 import com.baekho.bridgenet.domain.bridge.service.BridgeService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,8 +53,16 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
+    @GetMapping("request/{id}")
+    public ResponseEntity<SuccessResponse<RequestHistoryResponse>> getRequestHistory(
+            @PathVariable Long id
+    ) {
+        RequestHistoryResponse result = bridgeService.getRequestHistory(id);
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
     @Operation(summary = "전체 요청 조회", description = "전체 요청을 조회합니다.")
-    @GetMapping("request/history")
+    @GetMapping("requests")
     public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getExchangeHistory(
             @RequestParam(name = "sort", defaultValue = "latest") String sortType,
             @RequestParam(name = "size", defaultValue = "10") int size,

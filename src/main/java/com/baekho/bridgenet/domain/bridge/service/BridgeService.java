@@ -3,17 +3,20 @@ package com.baekho.bridgenet.domain.bridge.service;
 import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
-import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryChainInfo;
-import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryResponseDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.*;
+import com.baekho.bridgenet.domain.bridge.entity.BridgeTransaction;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
+import com.baekho.bridgenet.domain.bridge.repository.BridgeTransactionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.bridge.sepcification.ExchangeRequestSpecification;
+import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BridgeErrorCode;
 import com.baekho.bridgenet.global.common.enums.ApproveStatus;
+import com.baekho.bridgenet.global.common.enums.TransactionType;
 import com.baekho.bridgenet.global.common.exception.BridgeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +38,7 @@ import java.util.Map;
 public class BridgeService {
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
+    private final BridgeTransactionRepository bridgeTransactionRepository;
     private final RpcState rpcState;
 
     private final Map<Long, List<Bridge>> bridgeMap;
@@ -53,6 +57,53 @@ public class BridgeService {
         option.setUpdatedUser(user);
 
         exchangeRequestOptionRepository.save(option);
+    }
+
+    public RequestHistoryResponse getRequestHistory(Long id) {
+        // TODO: DB 쿼리 최적화 필요
+        ExchangeRequest exReq = exchangeRequestRepository.findById(id)
+                .orElseThrow(() -> new BridgeException(BridgeErrorCode.REQUEST_NOT_FOUND));
+
+        List<BridgeTransaction> fromTx = bridgeTransactionRepository.findByExchangeRequestAndType(exReq, TransactionType.FROM);
+        List<BridgeTransaction> toTx = bridgeTransactionRepository.findByExchangeRequestAndType(exReq, TransactionType.TO);
+
+        List<TransactionInfo> fromTxInfo = fromTx.stream()
+                .map(tx -> new TransactionInfo(tx.getTransactionHash(), tx.getProcessedBlock(), tx.getStatus()))
+                .toList();
+
+        List<TransactionInfo> toTxInfo = toTx.stream()
+                .map(tx -> new TransactionInfo(tx.getTransactionHash(), tx.getProcessedBlock(), tx.getStatus()))
+                .toList();
+
+        Chain fromChain = exReq.getFromChain();
+        Chain toChain = exReq.getToChain();
+
+        return RequestHistoryResponse.builder()
+                .id(exReq.getId())
+                .from(
+                    new RequestHistoryResponse.BridgeInfo(
+                        new BridgeHistoryChainInfo(
+                                fromChain.getChainId(),
+                                fromChain.getChainName(),
+                                exReq.getFromValue()
+                        ),
+                        fromTxInfo
+                    )
+                )
+                .to(
+                    new RequestHistoryResponse.BridgeInfo(
+                        new BridgeHistoryChainInfo(
+                                toChain.getChainId(),
+                                toChain.getChainName(),
+                                exReq.getToValue()
+                        ),
+                        toTxInfo
+                    )
+                )
+                .approveStatus(exReq.getApproveStatus())
+                .bridgeStatus(exReq.getBridgeStatus())
+                .createdAt(exReq.getCreatedAt())
+                .build();
     }
 
     public Page<BridgeHistoryResponseDTO> getExchangeHistory(

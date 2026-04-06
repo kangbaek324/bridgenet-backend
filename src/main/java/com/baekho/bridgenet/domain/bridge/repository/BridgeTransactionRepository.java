@@ -23,4 +23,6 @@ public interface BridgeTransactionRepository extends JpaRepository<BridgeTransac
             @Param("confirmedBlock") BigInteger confirmedBlock,
             @Param("type") TransactionType type
     );
+
+    List<BridgeTransaction> findByExchangeRequestAndType(ExchangeRequest exchangeRequest, TransactionType transactionType);
 }
