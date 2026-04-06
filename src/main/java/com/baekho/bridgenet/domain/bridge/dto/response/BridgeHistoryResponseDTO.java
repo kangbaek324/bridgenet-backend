@@ -1,7 +1,7 @@
 package com.baekho.bridgenet.domain.bridge.dto.response;
 
-import com.baekho.bridgenet.domain.chain.dto.response.ChainDetailBridgeHistoryDTO;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
+import com.baekho.bridgenet.global.common.enums.BridgeStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,11 +11,9 @@ import java.time.LocalDateTime;
 @Builder
 public class BridgeHistoryResponseDTO {
     private Long id;
-
-    private ChainDetailBridgeHistoryDTO from;
-    private ChainDetailBridgeHistoryDTO to;
-
-    private RequestStatus status;
-    private LocalDateTime exchangedAt;
+    private BridgeHistoryChainInfo from;
+    private BridgeHistoryChainInfo to;
+    private ApproveStatus approveStatus;
+    private BridgeStatus bridgeStatus;
     private LocalDateTime createdAt;
 }

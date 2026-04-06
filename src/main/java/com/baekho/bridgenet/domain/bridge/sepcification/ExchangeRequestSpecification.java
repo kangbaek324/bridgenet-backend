@@ -2,7 +2,7 @@ package com.baekho.bridgenet.domain.bridge.sepcification;
 
 import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 public interface ExchangeRequestSpecification {
@@ -22,7 +22,7 @@ public interface ExchangeRequestSpecification {
         return (root, query, cb) -> cb.equal(root.get("toChain").get("id"), chainId);
     }
 
-    public static Specification<ExchangeRequest> hasStatus(RequestStatus status) {
+    public static Specification<ExchangeRequest> hasStatus(ApproveStatus status) {
         return (root, query, cb) -> cb.equal(root.get("approveStatus"), status);
     }
 

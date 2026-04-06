@@ -2,8 +2,8 @@ package com.baekho.bridgenet.domain.bridge.entity;
 
 import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
 import com.baekho.bridgenet.global.common.enums.BridgeStatus;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -51,7 +51,7 @@ public class ExchangeRequest {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "approve_status")
-    private RequestStatus approveStatus;
+    private ApproveStatus approveStatus;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "bridge_status", nullable = false, length = 20)

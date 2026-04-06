@@ -4,11 +4,13 @@ import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.auth.service.AuthService;
 import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
+import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryResponseDTO;
 import com.baekho.bridgenet.domain.bridge.service.BridgeService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -50,20 +52,20 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
-//    @Operation(summary = "전체 요청 조회", description = "전체 요청을 조회합니다.")
-//    @GetMapping("request/history")
-//    public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getExchangeHistory(
-//            @RequestParam(name = "sort", defaultValue = "latest") String sortType,
-//            @RequestParam(name = "size", defaultValue = "10") int size,
-//            @RequestParam(name = "page", defaultValue = "1") int page,
-//            @RequestParam(name = "chainId", required = false) Long chainId,
-//            @RequestParam(name = "direction", required = false) String direction,
-//            @RequestParam(name = "status", required = false) String status
-//    ) {
-//        Page<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(
-//                sortType, size, page - 1, chainId, direction, status, null
-//        );
-//
-//        return ResponseEntity.ok(new SuccessResponse<>("", result));
-//    }
+    @Operation(summary = "전체 요청 조회", description = "전체 요청을 조회합니다.")
+    @GetMapping("request/history")
+    public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getExchangeHistory(
+            @RequestParam(name = "sort", defaultValue = "latest") String sortType,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "chainId", required = false) Long chainId,
+            @RequestParam(name = "direction", required = false) String direction,
+            @RequestParam(name = "status", required = false) String status
+    ) {
+        Page<BridgeHistoryResponseDTO> result = bridgeService.getExchangeHistory(
+                sortType, size, page - 1, chainId, direction, status, null
+        );
+
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
 }

@@ -2,8 +2,7 @@ package com.baekho.bridgenet.domain.bridge.repository;
 
 import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
-import com.baekho.bridgenet.global.common.enums.BridgeStatus;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -26,7 +25,7 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
         )
     """)
     List<ExchangeRequest> findPendingRelayRequests();
-    List<ExchangeRequest> findAllByApproveStatus(RequestStatus status);
+    List<ExchangeRequest> findAllByApproveStatus(ApproveStatus status);
 
     @Query("""
     SELECT e.toChain.chainId, e.toChain.chainName, SUM(e.toValue), e.toChain.unit
@@ -35,7 +34,7 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     GROUP BY e.toChain.chainId, e.toChain.chainName
     ORDER BY SUM(e.toValue) DESC
     """)
-    List<List<Object>> findTotalToValueByChain(@Param("status") RequestStatus status);
+    List<List<Object>> findTotalToValueByChain(@Param("status") ApproveStatus status);
 
     @Query("""
     SELECT e.fromChain.chainId, e.fromChain.chainName, SUM(e.fromValue), e.fromChain.unit
@@ -44,6 +43,6 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
     GROUP BY e.fromChain.chainId, e.fromChain.chainName
     ORDER BY SUM(e.fromValue) DESC
     """)
-    List<List<Object>> findTotalFromValueByChain(@Param("status") RequestStatus status);
+    List<List<Object>> findTotalFromValueByChain(@Param("status") ApproveStatus status);
 }
 

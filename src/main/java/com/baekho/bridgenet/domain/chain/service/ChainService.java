@@ -19,9 +19,9 @@ import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
 import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.enums.Protocol;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import io.reactivex.disposables.Disposable;
@@ -321,8 +321,8 @@ public class ChainService {
 
     public List<ChainRankingResponseDTO> getChainRanking(String sort) {
         List<List<Object>> chainRankingDB = switch (sort) {
-            case "in" -> exchangeRequestRepository.findTotalToValueByChain(RequestStatus.APPROVE);
-            case "out" -> exchangeRequestRepository.findTotalFromValueByChain(RequestStatus.APPROVE);
+            case "in" -> exchangeRequestRepository.findTotalToValueByChain(ApproveStatus.APPROVE);
+            case "out" -> exchangeRequestRepository.findTotalFromValueByChain(ApproveStatus.APPROVE);
             default -> throw new IllegalArgumentException("sort 는 in, out 만 허용합니다.");
         };
 

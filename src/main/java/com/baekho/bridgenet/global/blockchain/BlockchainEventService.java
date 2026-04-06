@@ -12,8 +12,8 @@ import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.domain.chain.repository.ChainRepository;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
 import com.baekho.bridgenet.global.common.enums.BridgeStatus;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.enums.TransactionStatus;
 import com.baekho.bridgenet.global.common.enums.TransactionType;
 import com.baekho.bridgenet.global.common.exception.ChainException;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -109,7 +108,7 @@ public class BlockchainEventService {
                     .fromChain(fromChain)
                     .fromValue(request.fromValue)
                     .user(user)
-                    .approveStatus(option.isAutoApprove() ? RequestStatus.APPROVE : RequestStatus.PENDING)
+                    .approveStatus(option.isAutoApprove() ? ApproveStatus.APPROVE : ApproveStatus.PENDING)
                     .approvedAt(option.isAutoApprove() ? LocalDateTime.now() : null)
                     .bridgeStatus(BridgeStatus.PENDING)
                     .build();
