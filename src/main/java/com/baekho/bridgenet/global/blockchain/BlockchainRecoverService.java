@@ -52,13 +52,13 @@ public class BlockchainRecoverService {
         // 맨처음 복구를 시작한 블록
         BigInteger recoverStartBlock = lastBlockNumber.add(BigInteger.ONE);
 
-        long recoverValue = 1500;
+        long recoverValue = 500;
 
         // 매 시도마다 블록 시작값과 마지막 블록값
         BigInteger startBlockNumber = lastBlockNumber.add(BigInteger.valueOf(1));
         BigInteger finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue));
 
-        log.info("---- Start Recover Requested Event ChainId: {} ---\n", chain.getChainId());
+        log.info("---- Start Recover Requested Event ChainId: {} ---", chain.getChainId());
         long start = System.currentTimeMillis();
 
         boolean isFinish = false;
@@ -71,8 +71,6 @@ public class BlockchainRecoverService {
             if (finishBlockNumber.compareTo(nowBlockNumber) > 0) {
                 finishBlockNumber = nowBlockNumber;
                 isFinish = true;
-
-                System.out.println("\n");
             }
 
             showPercentLog(chain, recoverStartBlock, nowBlockNumber, finishBlockNumber);
@@ -110,7 +108,7 @@ public class BlockchainRecoverService {
 
         long end = System.currentTimeMillis();
         log.info("---- Success Recover Requested Event ----");
-        System.out.println("Time Taken: " + (end - start) + "ms");
+        log.info("Time Taken: {}ms", end - start);
 
         // 상태 저장
         isRecoverMap.put(chain.getChainId(), false);
@@ -137,7 +135,7 @@ public class BlockchainRecoverService {
         }
 
         System.out.printf(
-                "\r[Recovering %s] Now: %s | End: %s (%.2f%%)",
+                "\r[Recovering %s] Now: %s | End: %s (%.2f%%)\n",
                 chain.getChainName(),
                 nowRecoverBlockNumber.toString(),
                 recoverEndBlockNumber.toString(),

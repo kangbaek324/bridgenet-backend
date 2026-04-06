@@ -212,8 +212,7 @@ public class ChainService {
     @Async
     public CompletableFuture<Void> setupChainRuntime(Chain chain, List<Rpc> rpcs) {
         return CompletableFuture.runAsync(() -> {
-            chain.setStatus(ChainStatus.PROCESSING);
-            chainRepository.save(chain);
+            chainRepository.updateStatus(chain.getId(), ChainStatus.PROCESSING);
 
             try {
                 Long chainId = chain.getChainId();
@@ -241,6 +240,7 @@ public class ChainService {
                     blockchainRecoverService.recoverEvent(chain, nowBlockNumber);
                 } catch (Exception e) {
                     log.error("Recover Event Error: {}", e.getMessage(), e);
+                    throw new BlockchainException(BlockchainErrorCode.ERROR);
                 }
 
                 // Recover 작업이 빨리 끝나 미래 -> 과거 이벤트를 구독하는 오류를 해결하기 위해
@@ -259,21 +259,18 @@ public class ChainService {
                 blockchainEventService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
             } catch (Exception e) {
                 log.error("SetupChainRuntime Error: {}", e.getMessage(), e);
-                chain.setStatus(ChainStatus.ERROR);
-                chainRepository.save(chain);
+                chainRepository.updateStatus(chain.getId(), ChainStatus.ERROR);
 
                 throw e;
             }
 
-            chain.setStatus(ChainStatus.ACTIVATE);
-            chainRepository.save(chain);
+            chainRepository.updateStatus(chain.getId(), ChainStatus.ACTIVATE);
         });
     }
 
     @Async
     public void deleteChainRuntime(Chain chain) {
-        chain.setStatus(ChainStatus.PROCESSING);
-        chainRepository.save(chain);
+        chainRepository.updateStatus(chain.getId(), ChainStatus.PROCESSING);
 
         try {
             Long chainId = chain.getChainId();
@@ -287,14 +284,12 @@ public class ChainService {
         } catch (Exception e) {
             log.error("DeleteChainRuntime Error: {}", e.getMessage(), e);
 
-            chain.setStatus(ChainStatus.ERROR);
-            chainRepository.save(chain);
+            chainRepository.updateStatus(chain.getId(), ChainStatus.ERROR);
 
             throw e;
         }
 
-        chain.setStatus(ChainStatus.DEACTIVATE);
-        chainRepository.save(chain);
+        chainRepository.updateStatus(chain.getId(), ChainStatus.DEACTIVATE);
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
