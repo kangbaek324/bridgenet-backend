@@ -18,4 +18,5 @@ public class ChainAddResponseDTO {
     private BigInteger maxFeePerGas;
     private BigInteger maxPriorityFeePerGas;
     private BigInteger gasLimit;
+    private Integer requiredConfirmations;
 }

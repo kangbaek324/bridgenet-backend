@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.chain.controller;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.chain.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
@@ -155,7 +155,7 @@ public class ChainController {
             @PathVariable Long chainId
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Users user = (Users) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
         WhiteListResponseDTO result = chainService.setWhiteList(chainId, user);
 

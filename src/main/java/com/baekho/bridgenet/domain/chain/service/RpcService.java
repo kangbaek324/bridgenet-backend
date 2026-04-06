@@ -15,9 +15,12 @@ import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import com.baekho.bridgenet.global.common.exception.RpcException;
 import lombok.RequiredArgsConstructor;
+import okhttp3.OkHttpClient;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
+
+import java.util.concurrent.TimeUnit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +88,12 @@ public class RpcService {
      * Rpc 객체
      */
     public void createHttpRpc(Chain chain, Rpc rpc) {
-        Web3j web3j = Web3j.build(new HttpService(rpc.getUrl()));
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+        Web3j web3j = Web3j.build(new HttpService(rpc.getUrl(), client));
 
         httpWeb3jMap
                 .computeIfAbsent(chain.getChainId(), k -> new ArrayList<>())

@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.global.common.enums;
 
-public enum RequestStatus {
+public enum ApproveStatus {
     PENDING,
     APPROVE,
     REJECT

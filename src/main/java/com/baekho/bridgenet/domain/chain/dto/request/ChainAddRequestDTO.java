@@ -44,4 +44,8 @@ public class ChainAddRequestDTO {
     @Min(21000)
     @NotNull
     private BigInteger gasLimit;
+
+    @NotNull
+    @Min(1)
+    private Integer requiredConfirmations;
 }

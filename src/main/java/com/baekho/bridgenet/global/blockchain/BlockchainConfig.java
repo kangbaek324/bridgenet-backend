@@ -17,9 +17,7 @@ public class BlockchainConfig {
     private final Map<Long, Disposable> subMap = new HashMap<>();
 
     @Bean
-    public Map<Long, List<Bridge>> bridgeMap() {
-        return bridgeMap;
-    }
+    public Map<Long, List<Bridge>> bridgeMap() { return bridgeMap; }
 
     @Bean
     public Map<Long, List<Web3j>> httpWeb3jMap() { return httpWeb3jMap; }

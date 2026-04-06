@@ -1,8 +1,9 @@
 package com.baekho.bridgenet.domain.bridge.entity;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.chain.entity.Chain;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
+import com.baekho.bridgenet.global.common.enums.BridgeStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,7 +33,7 @@ public class ExchangeRequest {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
     @ManyToOne()
     @JoinColumn(name = "from_chain_id", nullable = false)
@@ -50,17 +51,15 @@ public class ExchangeRequest {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "approve_status")
-    private RequestStatus approveStatus;
+    private ApproveStatus approveStatus;
 
-    @Column(name = "to_transaction_hash")
-    private String toTransactionHash;
-
-    @Column(name = "from_transaction_hash", nullable = false)
-    private String fromTransactionHash;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bridge_status", nullable = false, length = 20)
+    private BridgeStatus bridgeStatus;
 
     @ManyToOne()
     @JoinColumn(name = "approve_user_id")
-    private Users approveUser;
+    private User approveUser;
 
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;

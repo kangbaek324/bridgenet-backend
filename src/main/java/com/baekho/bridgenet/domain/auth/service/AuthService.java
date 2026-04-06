@@ -10,7 +10,7 @@ import com.baekho.bridgenet.domain.auth.dto.response.RegisterResponseDTO;
 import com.baekho.bridgenet.global.auth.TokenProvider;
 import com.baekho.bridgenet.domain.auth.entity.Nonces;
 import com.baekho.bridgenet.domain.auth.entity.RefreshTokens;
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.global.common.enums.Role;
 import com.baekho.bridgenet.domain.auth.repository.NonceRepository;
 import com.baekho.bridgenet.global.common.code.AuthErrorCode;
@@ -129,7 +129,7 @@ public class AuthService {
             if (userRepository.existsByAddress(dto.getAddress())) throw new AuthException(AuthErrorCode.ADDRESS_ALREADY_EXISTS);
             else if (userRepository.existsByUsername(dto.getUsername())) throw new AuthException(AuthErrorCode.USERNAME_ALREADY_EXISTS);
 
-            Users user = Users.builder()
+            User user = User.builder()
                     .address(dto.getAddress())
                     .username(dto.getUsername())
                     .role(Role.USER)
@@ -150,7 +150,7 @@ public class AuthService {
 
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO dto, HttpServletResponse response) {
-        Users user = userRepository.findByUsername(dto.getUsername())
+        User user = userRepository.findByUsername(dto.getUsername())
                 .orElseThrow(() -> new AuthException(AuthErrorCode.UNKNOWN_USER));
 
         Nonces nonce = nonceRepository.findByAddress(user.getAddress())
@@ -210,11 +210,11 @@ public class AuthService {
         return new RefreshAccessTokenResponseDTO(accessToken);
     }
 
-    public boolean isAdmin(Users user) {
+    public boolean isAdmin(User user) {
         return user.getRole() == Role.ADMIN;
     }
 
-    public Users getUserByUserId(Long userId) {
+    public User getUserByUserId(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.NOT_FOUND_USER));
     }

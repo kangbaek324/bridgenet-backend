@@ -1,24 +1,22 @@
 package com.baekho.bridgenet.domain.bridge.service;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
-import com.baekho.bridgenet.domain.bridge.dto.response.BridgeHistoryResponseDTO;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.bridge.dto.request.ExchangeApproveRequestDTO;
-import com.baekho.bridgenet.domain.chain.dto.response.ChainDetailApproveDTO;
-import com.baekho.bridgenet.domain.chain.dto.response.ChainDetailBridgeHistoryDTO;
-import com.baekho.bridgenet.domain.bridge.dto.response.ExchangeApproveResponseDTO;
 import com.baekho.bridgenet.domain.bridge.dto.request.RequestOptionSetRequestDTO;
-import com.baekho.bridgenet.domain.chain.entity.Chain;
+import com.baekho.bridgenet.domain.bridge.dto.response.*;
+import com.baekho.bridgenet.domain.bridge.entity.BridgeTransaction;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequest;
 import com.baekho.bridgenet.domain.bridge.entity.ExchangeRequestOption;
+import com.baekho.bridgenet.domain.bridge.repository.BridgeTransactionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestOptionRepository;
 import com.baekho.bridgenet.domain.bridge.repository.ExchangeRequestRepository;
 import com.baekho.bridgenet.domain.bridge.sepcification.ExchangeRequestSpecification;
+import com.baekho.bridgenet.domain.chain.entity.Chain;
 import com.baekho.bridgenet.global.blockchain.RpcState;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
-import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.BridgeErrorCode;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
-import com.baekho.bridgenet.global.common.exception.BlockchainException;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
+import com.baekho.bridgenet.global.common.enums.TransactionType;
 import com.baekho.bridgenet.global.common.exception.BridgeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +25,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,11 +38,12 @@ import java.util.Map;
 public class BridgeService {
     private final ExchangeRequestOptionRepository exchangeRequestOptionRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
+    private final BridgeTransactionRepository bridgeTransactionRepository;
     private final RpcState rpcState;
 
     private final Map<Long, List<Bridge>> bridgeMap;
 
-    public void setRequestOptionStatus(RequestOptionSetRequestDTO dto, Users user) {
+    public void setRequestOptionStatus(RequestOptionSetRequestDTO dto, User user) {
         ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
                 .orElseGet(() -> {
                     return ExchangeRequestOption.builder()
@@ -63,6 +59,55 @@ public class BridgeService {
         exchangeRequestOptionRepository.save(option);
     }
 
+    public RequestHistoryResponse getRequestHistory(Long id) {
+        // TODO: DB 쿼리 최적화 필요
+        ExchangeRequest exReq = exchangeRequestRepository.findById(id)
+                .orElseThrow(() -> new BridgeException(BridgeErrorCode.REQUEST_NOT_FOUND));
+
+        List<BridgeTransaction> fromTx = bridgeTransactionRepository.findByExchangeRequestAndType(exReq, TransactionType.FROM);
+        List<BridgeTransaction> toTx = bridgeTransactionRepository.findByExchangeRequestAndType(exReq, TransactionType.TO);
+
+        List<TransactionInfo> fromTxInfo = fromTx.stream()
+                .map(tx -> new TransactionInfo(tx.getTransactionHash(), tx.getProcessedBlock(), tx.getStatus()))
+                .toList();
+
+        List<TransactionInfo> toTxInfo = toTx.stream()
+                .map(tx -> new TransactionInfo(tx.getTransactionHash(), tx.getProcessedBlock(), tx.getStatus()))
+                .toList();
+
+        Chain fromChain = exReq.getFromChain();
+        Chain toChain = exReq.getToChain();
+
+        return RequestHistoryResponse.builder()
+                .id(exReq.getId())
+                .from(
+                    new RequestHistoryResponse.BridgeInfo(
+                        new BridgeHistoryChainInfo(
+                                fromChain.getChainId(),
+                                fromChain.getChainName(),
+                                fromChain.getUnit(),
+                                exReq.getFromValue()
+                        ),
+                        fromTxInfo
+                    )
+                )
+                .to(
+                    new RequestHistoryResponse.BridgeInfo(
+                        new BridgeHistoryChainInfo(
+                                toChain.getChainId(),
+                                toChain.getChainName(),
+                                toChain.getUnit(),
+                                exReq.getToValue()
+                        ),
+                        toTxInfo
+                    )
+                )
+                .approveStatus(exReq.getApproveStatus())
+                .bridgeStatus(exReq.getBridgeStatus())
+                .createdAt(exReq.getCreatedAt())
+                .build();
+    }
+
     public Page<BridgeHistoryResponseDTO> getExchangeHistory(
             String sortType,
             int size,
@@ -70,7 +115,7 @@ public class BridgeService {
             Long chainId,
             String direction,
             String status,
-            Users user
+            User user
     ) {
         if (direction == null) direction = "";
 
@@ -101,10 +146,10 @@ public class BridgeService {
         }
 
         if (status != null) {
-            RequestStatus statusType = switch (status) {
-                case "approve" -> RequestStatus.APPROVE;
-                case "pending" -> RequestStatus.PENDING;
-                case "reject" -> RequestStatus.REJECT;
+            ApproveStatus statusType = switch (status) {
+                case "approve" -> ApproveStatus.APPROVE;
+                case "pending" -> ApproveStatus.PENDING;
+                case "reject" -> ApproveStatus.REJECT;
                 default -> throw new IllegalArgumentException("status 는 approve, pending, reject 만 허용합니다.");
             };
 
@@ -115,109 +160,43 @@ public class BridgeService {
 
         Page<ExchangeRequest> exchangeRequestPage = exchangeRequestRepository.findAll(spec, pageable);
 
-        return exchangeRequestPage.map(exchangeRequest -> {
-            Chain toChain = exchangeRequest.getToChain();
-            Chain fromChain = exchangeRequest.getFromChain();
-
-            ChainDetailBridgeHistoryDTO from = ChainDetailBridgeHistoryDTO
-                    .builder()
-                    .chainId(fromChain.getChainId())
-                    .chainName(fromChain.getChainName())
-                    .value(exchangeRequest.getFromValue())
-                    .unit(fromChain.getUnit())
-                    .transactionHash(exchangeRequest.getFromTransactionHash())
-                    .build();
-
-            ChainDetailBridgeHistoryDTO to = ChainDetailBridgeHistoryDTO
-                    .builder()
-                    .chainId(toChain.getChainId())
-                    .chainName(toChain.getChainName())
-                    .value(exchangeRequest.getToValue())
-                    .unit(toChain.getUnit())
-                    .transactionHash(exchangeRequest.getToTransactionHash())
-                    .build();
-
-            return BridgeHistoryResponseDTO
-                    .builder()
-                    .id(exchangeRequest.getId())
-                    .from(from)
-                    .to(to)
-                    .status(exchangeRequest.getApproveStatus())
-                    .exchangedAt(exchangeRequest.getApprovedAt())
-                    .createdAt(exchangeRequest.getCreatedAt())
+        return exchangeRequestPage.map(exReq -> {
+            return BridgeHistoryResponseDTO.builder()
+                    .id(exReq.getId())
+                    .from(
+                            new BridgeHistoryChainInfo(
+                                    exReq.getFromChain().getChainId(),
+                                    exReq.getFromChain().getChainName(),
+                                    exReq.getFromChain().getUnit(),
+                                    exReq.getFromValue()
+                            )
+                    )
+                    .to(
+                            new BridgeHistoryChainInfo(
+                                    exReq.getToChain().getChainId(),
+                                    exReq.getToChain().getChainName(),
+                                    exReq.getToChain().getUnit(),
+                                    exReq.getToValue()
+                            )
+                    )
+                    .approveStatus(exReq.getApproveStatus())
+                    .bridgeStatus(exReq.getBridgeStatus())
+                    .createdAt(exReq.getCreatedAt())
                     .build();
         });
     }
 
     @Transactional
-    public ExchangeApproveResponseDTO setRequest(ExchangeApproveRequestDTO dto, Long id, Users user) {
+    public void setRequest(ExchangeApproveRequestDTO dto, Long id, User user) {
         ExchangeRequest request = exchangeRequestRepository.findById(id)
                 .orElseThrow(()-> new BridgeException(BridgeErrorCode.REQUEST_NOT_FOUND));
 
-        Chain fromChain = request.getFromChain();
-        Chain toChain = request.getToChain();
+        if (request.getApproveStatus() != ApproveStatus.PENDING) throw new BridgeException(BridgeErrorCode.REQUEST_ALREADY_PROCESSED);
 
-        if (request.getApproveStatus() != RequestStatus.PENDING) throw new BridgeException(BridgeErrorCode.REQUEST_ALREADY_PROCESSED);
-
-        request.setApproveStatus(dto.getApproveStatus() ? RequestStatus.APPROVE : RequestStatus.REJECT);
+        request.setApproveStatus(dto.getApproveStatus() ? ApproveStatus.APPROVE : ApproveStatus.REJECT);
         request.setApproveUser(user);
         request.setApprovedAt(LocalDateTime.now());
 
-        String transactionHash = "";
-        TransactionReceipt receipt;
-        if (dto.getApproveStatus()) {
-            try {
-                Long chainId = toChain.getChainId();
-
-                Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
-                receipt = bridge.triggerPayout(request.getUser().getAddress(), request.getFromValue()).send();
-            } catch (Exception e) {
-                log.error("Trigger Payout Error: {}", e.getMessage(), e);
-                throw new BlockchainException(BlockchainErrorCode.ERROR);
-            }
-        }
-        else {
-            try {
-                Long chainId = fromChain.getChainId();
-
-                Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
-                receipt = bridge.cancelRequest(request.getIdInSmartContract()).send();
-            } catch (Exception e) {
-                log.error("Cancel Request Error: {}", e.getMessage(), e);
-                throw new BlockchainException(BlockchainErrorCode.ERROR);
-            }
-        }
-
-        transactionHash = receipt.getTransactionHash();
-        request.setToTransactionHash(transactionHash);
-
-        // Response
-        ChainDetailApproveDTO from = ChainDetailApproveDTO
-                .builder()
-                .chainId(fromChain.getChainId())
-                .chainName(fromChain.getChainName())
-                .value(request.getFromValue())
-                .unit(fromChain.getUnit())
-                .transactionHash(request.getFromTransactionHash())
-                .build();
-
-        ChainDetailApproveDTO to = ChainDetailApproveDTO
-                .builder()
-                .chainId(toChain.getChainId())
-                .chainName(toChain.getChainName())
-                .value(request.getToValue())
-                .unit(toChain.getUnit())
-                .transactionHash(request.getToTransactionHash())
-                .build();
-
-        return ExchangeApproveResponseDTO
-                .builder()
-                .id(request.getId())
-                .from(from)
-                .to(to)
-                .approveStatus(request.getApproveStatus())
-                .approvedAt(request.getApprovedAt())
-                .transactionHash(transactionHash)
-                .build();
+        exchangeRequestRepository.save(request);
     }
 }

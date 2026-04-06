@@ -36,7 +36,7 @@ public class BlockchainRecoverService {
      *  나중에 DB 날아갔을때 recover 함수를 실행시키면 미처리 요청으로 들어가기 때문
      */
     /**
-     *  체인별 요청 값을 복구합니다.
+     *      *  체인별 요청 값을 복구합니다.
      *  subscribeToContractEvents 함수 사용시 이 함수가 먼저 실행되어야합니다.
      * @param chain Chain
      * @param nowBlockNumber nowBlockNumber
@@ -52,13 +52,13 @@ public class BlockchainRecoverService {
         // 맨처음 복구를 시작한 블록
         BigInteger recoverStartBlock = lastBlockNumber.add(BigInteger.ONE);
 
-        long recoverValue = 1500;
+        long recoverValue = 500;
 
         // 매 시도마다 블록 시작값과 마지막 블록값
         BigInteger startBlockNumber = lastBlockNumber.add(BigInteger.valueOf(1));
         BigInteger finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue));
 
-        log.info("---- Start Recover Requested Event ChainId: {} ---\n", chain.getChainId());
+        log.info("---- Start Recover Requested Event ChainId: {} ---", chain.getChainId());
         long start = System.currentTimeMillis();
 
         boolean isFinish = false;
@@ -68,14 +68,12 @@ public class BlockchainRecoverService {
             Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
             Web3j httpWeb3 = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
 
-            showPercentLog(chain, recoverStartBlock, nowBlockNumber, finishBlockNumber);
-
             if (finishBlockNumber.compareTo(nowBlockNumber) > 0) {
                 finishBlockNumber = nowBlockNumber;
                 isFinish = true;
-
-                System.out.println("\n");
             }
+
+            showPercentLog(chain, recoverStartBlock, nowBlockNumber, finishBlockNumber);
 
             EthFilter filter = new EthFilter(
                     DefaultBlockParameter.valueOf(startBlockNumber),
@@ -90,7 +88,7 @@ public class BlockchainRecoverService {
                 Log bcLog = (Log) logResult.get();
                 Bridge.RequestedEventResponse e = Bridge.getRequestedEventFromLog(bcLog);
 
-                blockchainEventService.saveRequest(e, e.log.getTransactionHash());
+                blockchainEventService.saveRequest(e);
             }
 
             if (isFinish) {
@@ -101,16 +99,13 @@ public class BlockchainRecoverService {
                 finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue));
 
                 // RPC 429 (To many Request) 해결
-                Thread.sleep(200);
+                Thread.sleep(1000);
             }
         }
 
-        chain.setLastBlockNumber(finishBlockNumber);
-        chainRepository.save(chain);
-
         long end = System.currentTimeMillis();
         log.info("---- Success Recover Requested Event ----");
-        System.out.println("Time Taken: " + (end - start) + "ms");
+        log.info("Time Taken: {}ms", end - start);
 
         // 상태 저장
         isRecoverMap.put(chain.getChainId(), false);
@@ -137,7 +132,7 @@ public class BlockchainRecoverService {
         }
 
         System.out.printf(
-                "\r[Recovering %s] Now: %s | End: %s (%.2f%%)",
+                "\r[Recovering %s] Now: %s | End: %s (%.2f%%)\n",
                 chain.getChainName(),
                 nowRecoverBlockNumber.toString(),
                 recoverEndBlockNumber.toString(),

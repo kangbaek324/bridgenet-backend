@@ -1,6 +1,6 @@
 package com.baekho.bridgenet.domain.chain.service;
 
-import com.baekho.bridgenet.domain.auth.entity.Users;
+import com.baekho.bridgenet.domain.auth.entity.User;
 import com.baekho.bridgenet.domain.chain.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
@@ -19,9 +19,9 @@ import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.enums.ApproveStatus;
 import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.enums.Protocol;
-import com.baekho.bridgenet.global.common.enums.RequestStatus;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
 import io.reactivex.disposables.Disposable;
@@ -95,6 +95,7 @@ public class ChainService {
                 .maxFeePerGas(chain.getMaxFeePerGas())
                 .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
                 .gasLimit(chain.getGasLimit())
+                .requiredConfirmations(chain.getRequiredConfirmations())
                 .build();
     }
 
@@ -105,6 +106,7 @@ public class ChainService {
         if (existingChainId) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN);
         else if (existingChainName) throw new ChainException(ChainErrorCode.ALREADY_EXIST_CHAIN_NAME);
 
+        // gas값 유효성 검사
         smartContractService.validateGasSetting(dto.getMaxFeePerGas(), dto.getMaxPriorityFeePerGas(), dto.getGasLimit());
 
         Chain chain = Chain.builder()
@@ -116,6 +118,7 @@ public class ChainService {
                 .maxFeePerGas(dto.getMaxFeePerGas())
                 .maxPriorityFeePerGas(dto.getMaxPriorityFeePerGas())
                 .gasLimit(dto.getGasLimit())
+                .requiredConfirmations(dto.getRequiredConfirmations())
                 .build();
 
         chainRepository.save(chain);
@@ -131,6 +134,7 @@ public class ChainService {
                 .maxFeePerGas(chain.getMaxFeePerGas())
                 .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
                 .gasLimit(chain.getGasLimit())
+                .requiredConfirmations(chain.getRequiredConfirmations())
                 .build();
     }
 
@@ -153,6 +157,7 @@ public class ChainService {
         chain.setMaxFeePerGas(dto.getMaxFeePerGas());
         chain.setMaxPriorityFeePerGas(dto.getMaxPriorityFeePerGas());
         chain.setGasLimit(dto.getGasLimit());
+        chain.setRequiredConfirmations(dto.getRequiredConfirmations());
 
         chainRepository.save(chain);
 
@@ -166,6 +171,7 @@ public class ChainService {
                 .maxFeePerGas(chain.getMaxFeePerGas())
                 .maxPriorityFeePerGas(chain.getMaxPriorityFeePerGas())
                 .gasLimit(chain.getGasLimit())
+                .requiredConfirmations(chain.getRequiredConfirmations())
                 .build();
     }
 
@@ -206,8 +212,7 @@ public class ChainService {
     @Async
     public CompletableFuture<Void> setupChainRuntime(Chain chain, List<Rpc> rpcs) {
         return CompletableFuture.runAsync(() -> {
-            chain.setStatus(ChainStatus.PROCESSING);
-            chainRepository.save(chain);
+            chainRepository.updateStatus(chain.getId(), ChainStatus.PROCESSING);
 
             try {
                 Long chainId = chain.getChainId();
@@ -235,6 +240,7 @@ public class ChainService {
                     blockchainRecoverService.recoverEvent(chain, nowBlockNumber);
                 } catch (Exception e) {
                     log.error("Recover Event Error: {}", e.getMessage(), e);
+                    throw new BlockchainException(BlockchainErrorCode.ERROR);
                 }
 
                 // Recover 작업이 빨리 끝나 미래 -> 과거 이벤트를 구독하는 오류를 해결하기 위해
@@ -253,21 +259,18 @@ public class ChainService {
                 blockchainEventService.subscribeToContractEvents(bridge, chain, nowBlockNumber);
             } catch (Exception e) {
                 log.error("SetupChainRuntime Error: {}", e.getMessage(), e);
-                chain.setStatus(ChainStatus.ERROR);
-                chainRepository.save(chain);
+                chainRepository.updateStatus(chain.getId(), ChainStatus.ERROR);
 
                 throw e;
             }
 
-            chain.setStatus(ChainStatus.ACTIVATE);
-            chainRepository.save(chain);
+            chainRepository.updateStatus(chain.getId(), ChainStatus.ACTIVATE);
         });
     }
 
     @Async
     public void deleteChainRuntime(Chain chain) {
-        chain.setStatus(ChainStatus.PROCESSING);
-        chainRepository.save(chain);
+        chainRepository.updateStatus(chain.getId(), ChainStatus.PROCESSING);
 
         try {
             Long chainId = chain.getChainId();
@@ -281,14 +284,12 @@ public class ChainService {
         } catch (Exception e) {
             log.error("DeleteChainRuntime Error: {}", e.getMessage(), e);
 
-            chain.setStatus(ChainStatus.ERROR);
-            chainRepository.save(chain);
+            chainRepository.updateStatus(chain.getId(), ChainStatus.ERROR);
 
             throw e;
         }
 
-        chain.setStatus(ChainStatus.DEACTIVATE);
-        chainRepository.save(chain);
+        chainRepository.updateStatus(chain.getId(), ChainStatus.DEACTIVATE);
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
@@ -320,8 +321,8 @@ public class ChainService {
 
     public List<ChainRankingResponseDTO> getChainRanking(String sort) {
         List<List<Object>> chainRankingDB = switch (sort) {
-            case "in" -> exchangeRequestRepository.findTotalToValueByChain(RequestStatus.APPROVE);
-            case "out" -> exchangeRequestRepository.findTotalFromValueByChain(RequestStatus.APPROVE);
+            case "in" -> exchangeRequestRepository.findTotalToValueByChain(ApproveStatus.APPROVE);
+            case "out" -> exchangeRequestRepository.findTotalFromValueByChain(ApproveStatus.APPROVE);
             default -> throw new IllegalArgumentException("sort 는 in, out 만 허용합니다.");
         };
 
@@ -361,7 +362,7 @@ public class ChainService {
         }
     }
 
-    public WhiteListResponseDTO setWhiteList(Long chainId, Users user) {
+    public WhiteListResponseDTO setWhiteList(Long chainId, User user) {
         Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
