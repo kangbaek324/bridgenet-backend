@@ -103,9 +103,6 @@ public class BlockchainRecoverService {
             }
         }
 
-        chain.setLastBlockNumber(finishBlockNumber);
-        chainRepository.save(chain);
-
         long end = System.currentTimeMillis();
         log.info("---- Success Recover Requested Event ----");
         log.info("Time Taken: {}ms", end - start);
