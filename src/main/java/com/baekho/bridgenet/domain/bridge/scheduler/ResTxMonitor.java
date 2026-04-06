@@ -41,7 +41,7 @@ public class ResTxMonitor {
 
     // TODO: 트랜잭션안에서 블록체인 조회 코드를 분리하기
     // resTx 처리 스케쥴러
-    @Scheduled(fixedDelay = 1000 * 60)
+    @Scheduled(fixedDelay = 1000 * 30)
     @Transactional
     public void resTxProcessor() {
         if (bridgeMap.isEmpty()) return;
@@ -83,7 +83,7 @@ public class ResTxMonitor {
 
     // TODO: 트랜잭션안에서 블록체인 조회 코드를 분리하기
     // resTx 추적 스케쥴러
-    @Scheduled(fixedDelay = 1000 * 60)
+    @Scheduled(fixedDelay = 1000 * 30)
     @Transactional
     public void resTxMonitor() {
         if (httpWeb3jMap.isEmpty()) return;

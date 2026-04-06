@@ -21,7 +21,7 @@ public class BridgeUserController {
     private final BridgeService bridgeService;
 
     @Operation(summary = "내 교환 기록 조회", description = "로그인 한 유저의 교환기록을 조회합니다.")
-    @GetMapping("/me/exchange-requests")
+    @GetMapping("/me/requests")
     public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getMyExchangeHistory(
             @RequestParam(name = "sort", defaultValue = "latest") String sortType,
             @RequestParam(name = "size", defaultValue = "10") int size,
@@ -41,7 +41,7 @@ public class BridgeUserController {
     }
 
     @Operation(summary = "특정 유저 교환 기록 조회", description = "특정 유저의 교환기록을 조회합니다.")
-    @GetMapping("/{userId}/exchange-requests")
+    @GetMapping("/{userId}/requests")
     public ResponseEntity<SuccessResponse<Page<BridgeHistoryResponseDTO>>> getUserExchangeHistory(
             @RequestParam(name = "sort", defaultValue = "latest") String sortType,
             @RequestParam(name = "size", defaultValue = "10") int size,

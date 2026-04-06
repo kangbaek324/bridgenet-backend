@@ -10,5 +10,6 @@ import java.math.BigInteger;
 public class BridgeHistoryChainInfo {
     private Long chainId;
     private String chainName;
+    private String unit;
     private BigInteger value;
 }

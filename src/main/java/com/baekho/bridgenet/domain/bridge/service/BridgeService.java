@@ -85,6 +85,7 @@ public class BridgeService {
                         new BridgeHistoryChainInfo(
                                 fromChain.getChainId(),
                                 fromChain.getChainName(),
+                                fromChain.getUnit(),
                                 exReq.getFromValue()
                         ),
                         fromTxInfo
@@ -95,6 +96,7 @@ public class BridgeService {
                         new BridgeHistoryChainInfo(
                                 toChain.getChainId(),
                                 toChain.getChainName(),
+                                toChain.getUnit(),
                                 exReq.getToValue()
                         ),
                         toTxInfo
@@ -165,13 +167,15 @@ public class BridgeService {
                             new BridgeHistoryChainInfo(
                                     exReq.getFromChain().getChainId(),
                                     exReq.getFromChain().getChainName(),
+                                    exReq.getFromChain().getUnit(),
                                     exReq.getFromValue()
                             )
                     )
                     .to(
                             new BridgeHistoryChainInfo(
                                     exReq.getToChain().getChainId(),
-                                    exReq.getFromChain().getChainName(),
+                                    exReq.getToChain().getChainName(),
+                                    exReq.getToChain().getUnit(),
                                     exReq.getToValue()
                             )
                     )

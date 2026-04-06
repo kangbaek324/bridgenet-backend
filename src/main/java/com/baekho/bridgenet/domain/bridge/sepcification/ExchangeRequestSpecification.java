@@ -9,17 +9,17 @@ public interface ExchangeRequestSpecification {
     public static Specification<ExchangeRequest> hasChainId(Long chainId) {
         return (root, query, cb) ->
                 cb.or(
-                        cb.equal(root.get("toChain").get("id"), chainId),
-                        cb.equal(root.get("fromChain").get("id"), chainId)
+                        cb.equal(root.get("toChain").get("chainId"), chainId),
+                        cb.equal(root.get("fromChain").get("chainId"), chainId)
                 );
     }
 
     public static Specification<ExchangeRequest> hasFromChainId(Long chainId) {
-        return (root, query, cb) -> cb.equal(root.get("fromChain").get("id"), chainId);
+        return (root, query, cb) -> cb.equal(root.get("fromChain").get("chainId"), chainId);
     }
 
     public static Specification<ExchangeRequest> hasToChainId(Long chainId) {
-        return (root, query, cb) -> cb.equal(root.get("toChain").get("id"), chainId);
+        return (root, query, cb) -> cb.equal(root.get("toChain").get("chainId"), chainId);
     }
 
     public static Specification<ExchangeRequest> hasStatus(ApproveStatus status) {

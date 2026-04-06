@@ -52,11 +52,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/rpc/**").permitAll()
 
                         // Bridge
-                        .requestMatchers(HttpMethod.GET, "/api/bridge/request/history/my").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/bridge/request/history/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/bridge/request/history").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/me/requests").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/requests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bridge/requests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bridge/request/*").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/bridge/chain").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/chains").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bridge/chain/*/contract/balance").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/chains/ranking").permitAll()
 
