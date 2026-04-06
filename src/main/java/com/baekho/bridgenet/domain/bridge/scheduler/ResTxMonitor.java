@@ -88,6 +88,7 @@ public class ResTxMonitor {
     public void resTxMonitor() {
         if (httpWeb3jMap.isEmpty()) return;
         List<Chain> chains = chainRepository.findAll();
+        BigInteger nowBlockNumber = null;
 
         for (Chain chain : chains) {
             List<Web3j> web3jList = httpWeb3jMap.get(chain.getChainId());
@@ -95,12 +96,12 @@ public class ResTxMonitor {
 
             Web3j httpWeb3 = web3jList.get(rpcState.rpcCount(chain.getChainId()));
 
-            // TODO: 중복 제거 필요
-            BigInteger nowBlockNumber = null;
-            try {
-                nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
-            } catch (Exception e) {
-                log.error("현재 블록 조회 실패{}", e.getMessage(), e);
+            if (nowBlockNumber == null) {
+                try {
+                    nowBlockNumber = httpWeb3.ethBlockNumber().send().getBlockNumber();
+                } catch (Exception e) {
+                    log.error("현재 블록 조회 실패{}", e.getMessage(), e);
+                }
             }
 
             // 컨펌 블록이 지난 트랜잭션 처리
