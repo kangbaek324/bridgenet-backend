@@ -5,6 +5,7 @@ import com.baekho.bridgenet.domain.chain.dto.response.RpcResponseDTO;
 import com.baekho.bridgenet.domain.chain.dto.response.RpcUpdateResponseDTO;
 import com.baekho.bridgenet.domain.chain.service.RpcService;
 import com.baekho.bridgenet.global.common.response.SuccessResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class RpcController {
     private final RpcService rpcService;
 
+    @Operation(summary = "RPC 조회", description = "RPC 정보를 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<SuccessResponse<RpcResponseDTO>> getRpc(
             @PathVariable Long id
@@ -25,6 +27,7 @@ public class RpcController {
         return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
 
+    @Operation(summary = "RPC 수정", description = "RPC 정보를 수정합니다.")
     @PutMapping("/{id}")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<RpcUpdateResponseDTO>> updateRpc(
@@ -35,6 +38,7 @@ public class RpcController {
         return ResponseEntity.ok(new SuccessResponse<>("", res));
     }
 
+    @Operation(summary = "RPC 삭제", description = "RPC를 삭제합니다.")
     @DeleteMapping("/{id}")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> deleteRpc(

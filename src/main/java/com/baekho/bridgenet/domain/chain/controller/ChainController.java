@@ -88,6 +88,7 @@ public class ChainController {
                 .body(new SuccessResponse<>("", null));
     }
 
+    @Operation(summary = "체인 상태 조회", description = "체인의 현재 상태를 조회합니다.")
     @GetMapping("{chainId}/status")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainStatusResponseDTO>> getChainStatus(
