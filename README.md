@@ -54,7 +54,8 @@
 
 - ERD
 
-  <img width="2369" height="1386" alt="image(2)" src="https://github.com/user-attachments/assets/ea5e2006-8d34-4cad-a0ef-d7d75aff8e49" />
+
+  <img width="3853" height="3599" alt="mermaid-diagram-2026-04-07-160825" src="https://github.com/user-attachments/assets/ab80e292-9f20-41a4-a90e-e6a53af860e8" />
 
 ## 📡 API Endpoints
 
