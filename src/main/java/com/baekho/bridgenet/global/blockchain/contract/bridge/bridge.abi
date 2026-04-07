@@ -8,33 +8,48 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "chainId",
+        "name": "fromChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "requestId",
         "type": "uint256"
       }
     ],
-    "name": "ChainAlreadyExists",
+    "name": "AlreadyProcessed",
     "type": "error"
   },
   {
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "chainId",
+        "name": "minimum",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "actual",
         "type": "uint256"
       }
     ],
-    "name": "ChainAlreadyRemoved",
+    "name": "BelowMinimumValue",
     "type": "error"
   },
   {
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "chainId",
+        "name": "maximum",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "actual",
         "type": "uint256"
       }
     ],
-    "name": "IncorrectChainId",
+    "name": "ExceedsMaximumValue",
     "type": "error"
   },
   {
@@ -46,6 +61,55 @@
       }
     ],
     "name": "IncorrectRequestId",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum Bridge.RequestStatus",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "name": "IncorrectRequestStatus",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "requested",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "available",
+        "type": "uint256"
+      }
+    ],
+    "name": "InsufficientBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "max",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidMaximumValue",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "min",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidMinimumValue",
     "type": "error"
   },
   {
@@ -74,50 +138,39 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "PayoutFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum Bridge.RequestStatus",
+        "name": "current",
+        "type": "uint8"
+      }
+    ],
+    "name": "RequestAlreadyFinalized",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "_address",
         "type": "address"
       }
     ],
     "name": "WhiteListUnauthorizedAccount",
     "type": "error"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "_address",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "AddBalance",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "chainId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "status",
-        "type": "bool"
-      }
-    ],
-    "name": "ChainListUpdated",
-    "type": "event"
   },
   {
     "anonymous": false,
@@ -144,7 +197,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "requestedBy",
+        "name": "requestAddress",
         "type": "address"
       },
       {
@@ -183,16 +236,6 @@
             "internalType": "enum Bridge.RequestStatus",
             "name": "status",
             "type": "uint8"
-          },
-          {
-            "internalType": "address",
-            "name": "statusDecidedBy",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "exchangedAt",
-            "type": "uint256"
           }
         ],
         "indexed": false,
@@ -218,12 +261,6 @@
         "internalType": "enum Bridge.RequestStatus",
         "name": "requestStatus",
         "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "requestedBy",
-        "type": "address"
       }
     ],
     "name": "SetRequested",
@@ -268,61 +305,23 @@
     "type": "event"
   },
   {
-    "inputs": [],
-    "name": "addBalance",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
+    "anonymous": false,
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "chainId",
-        "type": "uint256"
-      }
-    ],
-    "name": "addChain",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "requestId",
-        "type": "uint256"
-      }
-    ],
-    "name": "cancelRequest",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "chainList",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
+        "indexed": false,
+        "internalType": "enum Bridge.ValueRange",
+        "name": "valueRange",
+        "type": "uint8"
       },
       {
-        "internalType": "bool",
-        "name": "active",
-        "type": "bool"
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "setValueRange",
+    "type": "event"
   },
   {
     "inputs": [],
@@ -341,13 +340,24 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "chainId",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "name": "removeChain",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "payoutList",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -363,16 +373,24 @@
         "internalType": "uint256",
         "name": "toChainId",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_value",
-        "type": "uint256"
       }
     ],
     "name": "request",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "requestIdCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -419,19 +437,61 @@
         "internalType": "enum Bridge.RequestStatus",
         "name": "status",
         "type": "uint8"
-      },
-      {
-        "internalType": "address",
-        "name": "statusDecidedBy",
-        "type": "address"
-      },
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "requestMaximumValue",
+    "outputs": [
       {
         "internalType": "uint256",
-        "name": "exchangedAt",
+        "name": "",
         "type": "uint256"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "requestMinimumValue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "max",
+        "type": "uint256"
+      }
+    ],
+    "name": "setMaximumValue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "min",
+        "type": "uint256"
+      }
+    ],
+    "name": "setMinimumValue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -486,6 +546,16 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "fromChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "requestId",
+        "type": "uint256"
+      },
+      {
         "internalType": "address payable",
         "name": "_address",
         "type": "address"
@@ -519,5 +589,9 @@
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]
