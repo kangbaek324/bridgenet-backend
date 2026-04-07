@@ -61,7 +61,11 @@ public class ResTxMonitor {
             // 자산 전송
             TransactionReceipt receipt = null;
             try {
-                receipt = bridge.triggerPayout(user.getAddress(), exReq.getToValue()).send();
+                receipt = bridge.triggerPayout(
+                        BigInteger.valueOf(exReq.getFromChain().getChainId()),
+                        exReq.getIdInSmartContract(),
+                        user.getAddress(),
+                        exReq.getToValue()).send();
             } catch (Exception e) {
                 log.error("Trigger Payout Error: {}", e.getMessage(), e);
             }
