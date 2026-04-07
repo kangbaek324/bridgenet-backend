@@ -53,6 +53,7 @@ public class BridgeController {
         return ResponseEntity.ok(new SuccessResponse<>("", null));
     }
 
+    @Operation(summary = "요청 상세 조회", description = "특정 요청의 상세 정보를 조회합니다.")
     @GetMapping("request/{id}")
     public ResponseEntity<SuccessResponse<RequestHistoryResponse>> getRequestHistory(
             @PathVariable Long id

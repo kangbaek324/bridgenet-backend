@@ -1,7 +1,6 @@
 package com.baekho.bridgenet.domain.chain.controller;
 
 import com.baekho.bridgenet.domain.auth.entity.User;
-import com.baekho.bridgenet.domain.chain.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
@@ -89,6 +88,7 @@ public class ChainController {
                 .body(new SuccessResponse<>("", null));
     }
 
+    @Operation(summary = "체인 상태 조회", description = "체인의 현재 상태를 조회합니다.")
     @GetMapping("{chainId}/status")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<ChainStatusResponseDTO>> getChainStatus(
@@ -134,19 +134,6 @@ public class ChainController {
     ) {
         ContractBalanceGetResponseDTO result = chainService.getContractBalance(chainId);
         return ResponseEntity.ok(new SuccessResponse<>("", result));
-    }
-
-    @Operation(summary = "컨트랙트 코인 충전", description = "컨트랙트에 코인을 충전합니다")
-    @PostMapping("{chainId}/contract/balance")
-    @PreAuthorize("@authService.isAdmin(principal)")
-    public ResponseEntity<SuccessResponse<Void>> addContractBalance(
-            @Valid @RequestBody AddContractBalanceRequestDTO dto,
-            @PathVariable Long chainId
-    ) {
-        if (dto.getBalance().compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("값이 0이 될 수 없습니다.");
-
-        chainService.addContractBalance(dto, chainId);
-        return ResponseEntity.ok(new SuccessResponse<>("" , null));
     }
 
     @Operation(summary = "컨트랙트 화이트리스트 등록", description = "자본을 옮길 컨트랙트에 화이트리스트 등록 요청을 보냅니다.")

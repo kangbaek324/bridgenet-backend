@@ -77,7 +77,7 @@ public class BlockchainEventService {
         String txHash = e.log.getTransactionHash();
         BigInteger blockNumber = e.log.getBlockNumber();
 
-        Optional<User> userOpt = userRepository.findByAddress(e.requestedBy);
+        Optional<User> userOpt = userRepository.findByAddress(e.requestAddress);
         Optional<Chain> chainOpt = chainRepository.findByChainId(request.fromChainId.longValue());
 
         if (userOpt.isPresent() && chainOpt.isPresent()) {
@@ -136,7 +136,7 @@ public class BlockchainEventService {
             log.warn("알 수 없는 체인: {}", request.fromChainId.longValue());
         }
         else {
-            log.warn("알 수 없는 주소: {}", e.requestedBy);
+            log.warn("알 수 없는 주소: {}", e.requestAddress);
         }
     }
 }

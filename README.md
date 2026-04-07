@@ -13,31 +13,102 @@
 
 ![제목 없는 비디오 - Clipchamp로 제작](https://github.com/user-attachments/assets/37296308-a783-439c-8f8e-8de7778a6e21)
 
+개발기간: 2025-10 ~ 2025-12
+
+팀원: 1인 개발
+
+---
 
 ## 💫 Features
 
 ### Auth
+- 논스값 발급
 - 회원가입
 - 로그인
+- 액세스토큰 재발급
+
+### Chain
+- 체인 리스트 조회
+- 체인 관리 (추가 / 수정 / 삭제)
+- 체인 활성화 / 비활성화
+- 체인 랭킹 조회
+- 컨트랙트 잔액 조회
+- 컨트랙트 화이트리스트 등록
+
+### RPC
+- RPC 목록 조회
+- RPC 관리 (추가 / 수정 / 삭제)
 
 ### Bridge
-- 네이티브 토큰 교환
-- 교환 가능 체인 리스트 
-- 교환 기록 조회 
-- 교환 옵션 설정 (수동, 자동 처리)
-- 스마트컨트랙트 코인 충전 
-- 스마트컨트랙트 잔액 조회
-- 교환 통계
+- 교환 요청 조회 (전체 / 상세)
+- 교환 요청 수동 처리
+- 교환 처리 옵션 설정 (자동 / 수동)
+- 유저별 교환 기록 조회
 
+---
 
 ## 📂 Architecture
 - System
- 
+
   <img width="1331" height="673" alt="image(1)" src="https://github.com/user-attachments/assets/7a08c90d-23e7-4742-b4f0-4b24d94f63e4" />
-  
+
 - ERD
 
-  <img width="2369" height="1386" alt="image(2)" src="https://github.com/user-attachments/assets/ea5e2006-8d34-4cad-a0ef-d7d75aff8e49" />
+
+  <img width="3853" height="3599" alt="mermaid-diagram-2026-04-07-160825" src="https://github.com/user-attachments/assets/ab80e292-9f20-41a4-a90e-e6a53af860e8" />
+
+## 📡 API Endpoints
+
+Swagger UI: `http://localhost:8081/swagger-ui.html`
+
+
+
+### Auth
+| 기능 | Method | URL |
+|------|--------|-----|
+| 논스값 요청 | POST | `/api/auth/nonce` |
+| 회원가입 | POST | `/api/auth/register` |
+| 로그인 | POST | `/api/auth/login` |
+| 액세스토큰 재발급 | POST | `/api/auth/refresh` |
+
+### Chain
+| 기능 | Method | URL |
+|------|--------|-----|
+| 체인 리스트 조회 | GET | `/api/chains` |
+| 체인 리스트 조회 (비활성화 포함, 어드민) | GET | `/api/chains/all` |
+| 체인 상세 조회 (어드민) | GET | `/api/chains/{chainId}` |
+| 체인 추가 | POST | `/api/chains` |
+| 체인 정보 변경 | PUT | `/api/chains/{chainId}` |
+| 체인 삭제 | DELETE | `/api/chains/{chainId}` |
+| 체인 상태 조회 | GET | `/api/chains/{chainId}/status` |
+| 체인 활성화 | POST | `/api/chains/{chainId}/activate` |
+| 체인 비활성화 | POST | `/api/chains/{chainId}/deactivate` |
+| 체인 랭킹 조회 | GET | `/api/chains/ranking?sort={in\|out}` |
+| 컨트랙트 잔액 조회 | GET | `/api/chains/{chainId}/contract/balance` |
+| 컨트랙트 화이트리스트 등록 | POST | `/api/chains/{chainId}/contract/whitelist` |
+
+### RPC
+| 기능 | Method | URL |
+|------|--------|-----|
+| 체인 RPC 목록 조회 | GET | `/api/chains/{chainId}/rpcs` |
+| 체인 RPC 추가 | POST | `/api/chains/{chainId}/rpcs` |
+| RPC 조회 | GET | `/api/rpcs/{id}` |
+| RPC 수정 | PUT | `/api/rpcs/{id}` |
+| RPC 삭제 | DELETE | `/api/rpcs/{id}` |
+
+### Bridge
+| 기능 | Method | URL |
+|------|--------|-----|
+| 전체 교환 요청 조회 | GET | `/api/bridge/requests` |
+| 교환 요청 상세 조회 | GET | `/api/bridge/request/{id}` |
+| 교환 요청 수동 처리 (어드민) | POST | `/api/bridge/request/{id}` |
+| 처리 옵션 설정 (어드민) | POST | `/api/bridge/request/option` |
+
+### User
+| 기능 | Method | URL |
+|------|--------|-----|
+| 내 교환 기록 조회 | GET | `/api/users/me/requests` |
+| 특정 유저 교환 기록 조회 | GET | `/api/users/{userId}/requests` |
 
 ## 🛠️ Stack
 ### Backend

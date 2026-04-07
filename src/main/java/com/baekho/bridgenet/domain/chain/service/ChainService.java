@@ -1,7 +1,6 @@
 package com.baekho.bridgenet.domain.chain.service;
 
 import com.baekho.bridgenet.domain.auth.entity.User;
-import com.baekho.bridgenet.domain.chain.dto.request.AddContractBalanceRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainAddRequestDTO;
 import com.baekho.bridgenet.domain.chain.dto.request.ChainUpdateRequestDTO;
 import com.baekho.bridgenet.domain.bridge.dto.response.*;
@@ -33,7 +32,6 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.utils.Convert;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -345,21 +343,6 @@ public class ChainService {
         }
 
         return chainRanking;
-    }
-
-    public void addContractBalance(AddContractBalanceRequestDTO dto, Long chainId) {
-        Chain chain = chainRepository.findByChainId(chainId)
-            .orElseThrow(()-> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
-
-        try {
-            Bridge bridge = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId));
-            bridge.addBalance(
-                    Convert.toWei(dto.getBalance(), Convert.Unit.ETHER).toBigInteger()
-            ).send();
-        } catch (Exception e) {
-            log.error("Add Contract Balance Error: {}", e.getMessage(), e);
-            throw new BlockchainException(BlockchainErrorCode.ERROR);
-        }
     }
 
     public WhiteListResponseDTO setWhiteList(Long chainId, User user) {
