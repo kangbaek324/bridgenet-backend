@@ -17,17 +17,24 @@ import com.baekho.bridgenet.global.common.enums.BridgeStatus;
 import com.baekho.bridgenet.global.common.enums.TransactionStatus;
 import com.baekho.bridgenet.global.common.enums.TransactionType;
 import com.baekho.bridgenet.global.common.exception.ChainException;
+import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.EventEncoder;
+import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
-import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.response.EthLog;
+import org.web3j.protocol.core.methods.response.Log;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +46,9 @@ public class BlockchainEventService {
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final BridgeTransactionRepository bridgeTransactionRepository;
 
-    private final Map<Long, List<Bridge>> bridgeMap;
+    private final Map<Long, List<Web3j>> httpWeb3jMap;
     private final Map<Long, Disposable> subMap;
+    private final RpcState rpcState;
 
     /**
      * 컨트랙트의 요청을 구독합니다.
@@ -50,25 +58,55 @@ public class BlockchainEventService {
      * @param nowBlockNumber nowBlockNumber
      */
     public void subscribeToContractEvents(Bridge bridge, Chain chain, BigInteger nowBlockNumber) {
-        Disposable sub = bridge.requestedEventFlowable(
-                DefaultBlockParameter.valueOf(nowBlockNumber.add(BigInteger.valueOf(1))),
-                DefaultBlockParameterName.LATEST
-        ).subscribe(
-                event -> {
-                    log.info("RequestEvent: Request ID: {}", event.request.id);
-                    try {
-                        this.saveRequest(event);
-                    } catch (Exception e) {
-                        log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e.getMessage(), e);
-                    }
-                },
-                error -> {
-                    log.error("[Chain: {}] Requested 이벤트 구독 에러: {}", chain.getChainName(), error.getMessage());
-                    throw new IllegalStateException(error);
-                }
-        );
+        Long chainId = chain.getChainId();
+        AtomicReference<BigInteger> lastBlock = new AtomicReference<>(nowBlockNumber);
 
-        subMap.put(chain.getChainId(), sub);
+        Disposable sub = Flowable.interval(5, TimeUnit.SECONDS)
+                .subscribe(
+                        tick -> {
+                            try {
+                                Web3j web3j = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
+                                BigInteger fromBlock = lastBlock.get().add(BigInteger.ONE);
+                                BigInteger toBlock = web3j.ethBlockNumber().send().getBlockNumber();
+
+                                if (fromBlock.compareTo(toBlock) > 0) return;
+
+                                EthFilter filter = new EthFilter(
+                                        DefaultBlockParameter.valueOf(fromBlock),
+                                        DefaultBlockParameter.valueOf(toBlock),
+                                        bridge.getContractAddress()
+                                );
+                                filter.addSingleTopic(EventEncoder.encode(Bridge.REQUESTED_EVENT));
+
+                                EthLog ethLogs = web3j.ethGetLogs(filter).send();
+
+                                if (ethLogs.hasError()) {
+                                    log.error("[Chain: {}] ethGetLogs 에러: {}", chain.getChainName(), ethLogs.getError().getMessage());
+                                    return;
+                                }
+
+                                List<EthLog.LogResult> logs = ethLogs.getLogs();
+                                if (logs == null) return;
+
+                                for (EthLog.LogResult<?> logResult : logs) {
+                                    Bridge.RequestedEventResponse event = Bridge.getRequestedEventFromLog((Log) logResult.get());
+                                    log.info("RequestEvent: Request ID: {}", event.request.id);
+                                    try {
+                                        this.saveRequest(event);
+                                    } catch (Exception e) {
+                                        log.error("Save RequestEvent Failed: Request ID: {}, {}", event.request.id, e.getMessage(), e);
+                                    }
+                                }
+
+                                lastBlock.set(toBlock);
+                            } catch (Exception e) {
+                                log.error("[Chain: {}] Requested 이벤트 폴링 에러: {}", chain.getChainName(), e.getMessage(), e);
+                            }
+                        },
+                        error -> log.error("[Chain: {}] Requested 이벤트 구독 에러: {}", chain.getChainName(), error.getMessage(), error)
+                );
+
+        subMap.put(chainId, sub);
     }
 
     @Transactional
