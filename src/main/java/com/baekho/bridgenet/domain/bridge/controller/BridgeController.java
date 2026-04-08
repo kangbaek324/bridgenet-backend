@@ -26,7 +26,7 @@ public class BridgeController {
     private final AuthService authService;
 
     @Operation(summary = "처리 옵션 설정", description = "스마트컨트랙트에서의 브릿지 요청을 감지하고 어떻게 처리할 것 인지 설정합니다.")
-    @PostMapping("request/option")
+    @PostMapping("requests/option")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> setRequestOption(
             @Valid @RequestBody RequestOptionSetRequestDTO dto
@@ -40,7 +40,7 @@ public class BridgeController {
     }
 
     @Operation(summary = "요청 처리", description = "들어온 요청을 수동으로 처리 합니다.")
-    @PostMapping("request/{id}")
+    @PostMapping("requests/{id}")
     @PreAuthorize("@authService.isAdmin(principal)")
     public ResponseEntity<SuccessResponse<Void>> setRequest(
             @PathVariable Long id,
@@ -54,7 +54,7 @@ public class BridgeController {
     }
 
     @Operation(summary = "요청 상세 조회", description = "특정 요청의 상세 정보를 조회합니다.")
-    @GetMapping("request/{id}")
+    @GetMapping("requests/{id}")
     public ResponseEntity<SuccessResponse<RequestHistoryResponse>> getRequestHistory(
             @PathVariable Long id
     ) {

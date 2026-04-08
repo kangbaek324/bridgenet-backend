@@ -290,7 +290,7 @@ public class ChainService {
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
-        Chain chain = chainRepository.findById(chainId)
+        Chain chain = chainRepository.findByChainId(chainId)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         Web3j web3j = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));

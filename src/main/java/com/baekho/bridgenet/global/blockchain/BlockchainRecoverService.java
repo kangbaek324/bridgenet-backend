@@ -22,9 +22,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class BlockchainRecoverService {
-    private final RpcState rpcState;
     private final BlockchainEventService blockchainEventService;
+    private final ChainRepository chainRepository;
 
+    private final RpcState rpcState;
     private final Map<Long, Boolean> isRecoverMap;
     private final Map<Long, List<Web3j>> httpWeb3jMap;
 
