@@ -1,0 +1,33 @@
+spring:
+    application:
+        name: bridgenet
+    datasource:
+        url: ${DB_URL}
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
+    jwt:
+        secret: ${JWT_SECRET}
+    jpa:
+        hibernate:
+            ddl-auto: update
+    mvc:
+        throw-exception-if-no-handler-found: true
+    web:
+        resources:
+            add-mappings: false
+
+ethereum:
+    private:
+            key: ${ETHEREUM_PRIVATE_KEY}
+
+springdoc:
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+        disable-swagger-default-url: true
+        operations-sorter: alpha
+        tags-sorter: alpha
+
+server:
+    port: 8081
