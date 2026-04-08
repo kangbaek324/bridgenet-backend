@@ -26,6 +26,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
       - name: Docker 레이어 캐시 설정
         uses: actions/cache@v4
         with:

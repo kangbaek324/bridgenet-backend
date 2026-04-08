@@ -1,0 +1,8 @@
+.git
+.github
+build
+.gradle
+.idea
+*.iml
+.env
+FrontForTest
