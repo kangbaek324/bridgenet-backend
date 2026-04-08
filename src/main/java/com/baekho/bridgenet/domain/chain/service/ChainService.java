@@ -43,7 +43,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @Slf4j
 public class ChainService {
-    // @TODO 스마트컨트랙트로 chainID 추가 요청 보내도록 수정해야됨
     private final ChainRepository chainRepository;
     private final ExchangeRequestRepository exchangeRequestRepository;
     private final RpcRepository rpcRepository;

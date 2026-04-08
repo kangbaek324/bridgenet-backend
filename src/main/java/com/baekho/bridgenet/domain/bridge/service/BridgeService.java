@@ -43,6 +43,8 @@ public class BridgeService {
 
     private final Map<Long, List<Bridge>> bridgeMap;
 
+    // TODO: 취소 요청 필요
+    // TODO: REJECT시 환불 요청 실행시켜야됨
     public void setRequestOptionStatus(RequestOptionSetRequestDTO dto, User user) {
         ExchangeRequestOption option = exchangeRequestOptionRepository.findById(1L)
                 .orElseGet(() -> {
