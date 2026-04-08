@@ -16,13 +16,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Component
@@ -69,20 +68,20 @@ public class ReqTxMonitor {
                 for (BridgeTransaction tx : txs) {
                     ExchangeRequest exReq = tx.getExchangeRequest();
 
-                    // 트랜잭션 존재 여부 조회
-                    Optional<Transaction> txOpt = Optional.empty();
+                    // 트랜잭션 조회
+                    TransactionReceipt receipt = null;
                     try {
-                        txOpt = httpWeb3.ethGetTransactionByHash(tx.getTransactionHash()).send().getTransaction();
+                        receipt = httpWeb3.ethGetTransactionReceipt(tx.getTransactionHash()).send().getResult();
                     } catch (Exception e) {
                         log.error("트랜잭션 조회 실패{}", e.getMessage(), e);
                     }
 
-                    if (txOpt.isPresent()) {
-                        // 존재하면 컨펌후 브릿징 상태 진행중으로 업데이트
+                    if (receipt != null && receipt.isStatusOK()) {
+                        // 성공이면 컨펌후 브릿징 상태 진행중으로 업데이트
                         tx.setStatus(TransactionStatus.CONFIRMED);
                         exReq.setBridgeStatus(BridgeStatus.IN_PROGRESS);
                     } else {
-                        // 존재하지 않으면 드랍 후 실패처리
+                        // receipt 없거나 revert된 경우 드랍 후 실패처리
                         // 요청은 서버에서 다시 보낼 수 없음으로 실패처리 해야함
                         tx.setStatus(TransactionStatus.DROPPED);
                         exReq.setBridgeStatus(BridgeStatus.FAILED);
