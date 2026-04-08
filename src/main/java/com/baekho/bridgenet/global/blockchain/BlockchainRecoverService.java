@@ -47,11 +47,11 @@ public class BlockchainRecoverService {
         // 맨처음 복구를 시작한 블록
         BigInteger recoverStartBlock = lastBlockNumber.add(BigInteger.ONE);
 
-        long recoverValue = 1000;
+        long recoverValue = 500;
 
         // 매 시도마다 블록 시작값과 마지막 블록값
         BigInteger startBlockNumber = lastBlockNumber.add(BigInteger.valueOf(1));
-        BigInteger finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue));
+        BigInteger finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue - 1));
 
         log.info("---- Start Recover Requested Event ChainId: {} ---", chain.getChainId());
         long start = System.currentTimeMillis();
@@ -103,11 +103,14 @@ public class BlockchainRecoverService {
             }
 
             if (isFinish) {
+                chain.setLastBlockNumber(finishBlockNumber);
+                chainRepository.save(chain);
+
                 break;
             }
             else {
                 startBlockNumber = finishBlockNumber.add(BigInteger.valueOf(1));
-                finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue));
+                finishBlockNumber = startBlockNumber.add(BigInteger.valueOf(recoverValue - 1));
 
                 // RPC 429 (To many Request) 해결
                 Thread.sleep(250);
