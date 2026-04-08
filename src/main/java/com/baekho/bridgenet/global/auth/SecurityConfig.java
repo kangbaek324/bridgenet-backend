@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/bridge/requests/*").permitAll()
 
                         // Chain
+                        .requestMatchers(HttpMethod.GET, "/api/chains/*/contract/whitelist").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/chains/**").permitAll()
 
                         // Swagger

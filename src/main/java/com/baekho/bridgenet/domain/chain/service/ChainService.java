@@ -18,11 +18,13 @@ import com.baekho.bridgenet.global.blockchain.contract.SmartContractService;
 import com.baekho.bridgenet.global.blockchain.contract.bridge.Bridge;
 import com.baekho.bridgenet.global.common.code.BlockchainErrorCode;
 import com.baekho.bridgenet.global.common.code.ChainErrorCode;
+import com.baekho.bridgenet.global.common.code.WhiteListErrorCode;
 import com.baekho.bridgenet.global.common.enums.ApproveStatus;
 import com.baekho.bridgenet.global.common.enums.ChainStatus;
 import com.baekho.bridgenet.global.common.enums.Protocol;
 import com.baekho.bridgenet.global.common.exception.BlockchainException;
 import com.baekho.bridgenet.global.common.exception.ChainException;
+import com.baekho.bridgenet.global.common.exception.WhiteListException;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -290,7 +292,7 @@ public class ChainService {
     }
 
     public ContractBalanceGetResponseDTO getContractBalance(Long chainId) {
-        Chain chain = chainRepository.findByChainId(chainId)
+        Chain chain = chainRepository.findByChainIdAndStatus(chainId, ChainStatus.ACTIVATE)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
         Web3j web3j = httpWeb3jMap.get(chainId).get(rpcState.rpcCount(chainId));
@@ -344,14 +346,45 @@ public class ChainService {
         return chainRanking;
     }
 
-    public WhiteListResponseDTO setWhiteList(Long chainId, User user) {
-        Chain chain = chainRepository.findByChainId(chainId)
+    public WhiteListGetResponseDTO getWhiteList(Long chainId, User user) {
+        Chain chain = chainRepository.findByChainIdAndStatus(chainId, ChainStatus.ACTIVATE)
                 .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
 
-        TransactionReceipt receipt;
+        Bridge bridge = bridgeMap
+                .get(chain.getChainId())
+                .get(rpcState.rpcCount(chain.getChainId()));
 
+        boolean isWhiteList;
         try {
-            receipt = bridgeMap.get(chainId).get(rpcState.rpcCount(chainId)).setWhiteList(user.getAddress(), true).send();
+            isWhiteList = bridge.whiteList(user.getAddress()).send();
+        } catch (Exception e) {
+            log.error("SetWhiteList Error: {}", e.getMessage(), e);
+            throw new BlockchainException(BlockchainErrorCode.ERROR);
+        }
+
+        return new WhiteListGetResponseDTO(isWhiteList);
+    }
+
+    public WhiteListResponseDTO setWhiteList(Long chainId, User user) {
+        Chain chain = chainRepository.findByChainIdAndStatus(chainId, ChainStatus.ACTIVATE)
+                .orElseThrow(() -> new ChainException(ChainErrorCode.CHAIN_NOT_FOUND));
+
+        Bridge bridge = bridgeMap
+            .get(chain.getChainId())
+            .get(rpcState.rpcCount(chain.getChainId()));
+
+        boolean isWhiteList;
+        try {
+            isWhiteList = bridge.whiteList(user.getAddress()).send();
+        } catch (Exception e) {
+            log.error("SetWhiteList Error: {}", e.getMessage(), e);
+            throw new BlockchainException(BlockchainErrorCode.ERROR);
+        }
+        if (isWhiteList) throw new WhiteListException(WhiteListErrorCode.ALREADY_WHITE_LIST);
+
+        TransactionReceipt receipt;
+        try {
+            receipt = bridge.setWhiteList(user.getAddress(), true).send();
         } catch (Exception e) {
             log.error("Set WhiteList Error: {}", e.getMessage(), e);
             throw new BlockchainException(BlockchainErrorCode.ERROR);

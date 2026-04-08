@@ -136,6 +136,18 @@ public class ChainController {
         return ResponseEntity.ok(new SuccessResponse<>("", result));
     }
 
+    @Operation(summary = "화이트리스트 확인 ", description = "자본을 옮길 컨트랙트에 화이트리스트 등록 여부를 반환합니다")
+    @GetMapping("{chainId}/contract/whitelist")
+    public ResponseEntity<SuccessResponse<WhiteListGetResponseDTO>> getWhiteList(
+            @PathVariable Long chainId
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
+        WhiteListGetResponseDTO result = chainService.getWhiteList(chainId, user);
+        return ResponseEntity.ok(new SuccessResponse<>("", result));
+    }
+
     @Operation(summary = "컨트랙트 화이트리스트 등록", description = "자본을 옮길 컨트랙트에 화이트리스트 등록 요청을 보냅니다.")
     @PostMapping("{chainId}/contract/whitelist")
     public ResponseEntity<SuccessResponse<WhiteListResponseDTO>> setWhiteList(
