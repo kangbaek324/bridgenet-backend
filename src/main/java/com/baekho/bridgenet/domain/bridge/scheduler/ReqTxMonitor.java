@@ -35,7 +35,7 @@ public class ReqTxMonitor {
     private final RpcState rpcState;
 
     // TODO: 트랜잭션안에서 블록체인 조회 코드를 분리하기
-    @Scheduled(fixedDelay = 1000 * 30) // 1분
+    @Scheduled(fixedDelay = 1000 * 60 * 3) // 3분
     @Transactional
     public void reqTxMonitor() {
         if (httpWeb3jMap.isEmpty()) return;
