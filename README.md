@@ -83,7 +83,7 @@
 
 ---
 
-## 🚀 실행 방법
+## 🚀  How To Run
 
 ### 사전 요구사항
 - Docker, Docker Compose
